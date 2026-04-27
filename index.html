@@ -1,0 +1,1950 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="小窝">
+<meta name="theme-color" content="#c084fc">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>我们的小窝</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--purple:#c084fc;--pink:#f472b6;--glass:rgba(255,255,255,0.07);--border:rgba(255,255,255,0.12)}
+body{font-family:'Noto Sans SC',sans-serif;min-height:100vh;color:#fff;overflow-x:hidden;transition:background 3s ease}
+body.sky-dawn{background:linear-gradient(180deg,#1a0533 0%,#6b21a8 40%,#f97316 80%,#fbbf24 100%)}
+body.sky-morning{background:linear-gradient(180deg,#0ea5e9 0%,#38bdf8 50%,#bae6fd 100%)}
+body.sky-day{background:linear-gradient(180deg,#0284c7 0%,#0ea5e9 40%,#7dd3fc 100%)}
+body.sky-dusk{background:linear-gradient(180deg,#1e1b4b 0%,#7c3aed 30%,#db2777 60%,#f97316 100%)}
+body.sky-night{background:linear-gradient(180deg,#0f0c29 0%,#302b63 50%,#24243e 100%)}
+canvas#stars{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;transition:opacity 2s}
+.app{position:relative;z-index:1;max-width:430px;margin:0 auto;padding:20px 16px 100px}
+
+.header{text-align:center;padding:24px 0 16px;display:flex;align-items:center;justify-content:center;gap:16px}
+.name{font-size:18px;font-weight:500;color:rgba(255,255,255,0.9)}
+.heart-wrap{display:flex;flex-direction:column;align-items:center}
+.heart{font-size:32px;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+
+.card{background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px}
+
+.days-card{text-align:center}
+.days-label{font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:8px}
+.days-num{font-family:'Playfair Display',serif;font-size:64px;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.days-unit{font-size:20px;color:rgba(255,255,255,0.8);margin-left:4px;font-family:'Noto Sans SC',sans-serif;-webkit-text-fill-color:rgba(255,255,255,0.8)}
+.days-since{font-size:12px;color:rgba(255,255,255,0.4);margin-top:8px}
+
+.clocks{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.clock-card{text-align:center;padding:16px 12px}
+.clock-city{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:6px}
+.clock-time{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--purple);letter-spacing:1px}
+.clock-date{font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px}
+
+/* Map card */
+.map-card{padding:16px}
+.map-title{font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:10px;text-align:center}
+.map-wrap{width:100%;border-radius:12px;overflow:hidden;background:rgba(0,0,0,0.2)}
+
+.countdown-card{text-align:center}
+.countdown-label{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:12px}
+.countdown-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cd-item{background:rgba(255,255,255,0.05);border-radius:12px;padding:10px 4px}
+.cd-num{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--pink)}
+.cd-unit{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px}
+.countdown-met{font-size:20px;color:var(--pink)}
+
+
+.fab{position:fixed;bottom:24px;right:24px;z-index:100;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;cursor:pointer;font-size:22px;box-shadow:0 4px 20px rgba(192,132,252,0.4);transition:transform .2s}
+.fab:hover{transform:scale(1.1)}
+
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
+.drawer-overlay.open{opacity:1;pointer-events:all}
+.drawer{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:430px;background:linear-gradient(180deg,#1a1535,#0f0c29);border-radius:24px 24px 0 0;z-index:201;padding:24px 20px 40px;transition:transform .35s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto}
+.drawer.open{transform:translateX(-50%) translateY(0)}
+.drawer-handle{width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin:0 auto 20px}
+.drawer-title{font-size:18px;font-weight:700;text-align:center;margin-bottom:20px;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.setting-row{margin-bottom:16px}
+.setting-label{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:6px}
+.setting-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:#fff;font-size:14px;font-family:'Noto Sans SC',sans-serif;outline:none}
+.setting-input:focus{border-color:var(--purple)}
+.setting-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.save-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:16px;color:#fff;font-size:16px;font-weight:700;font-family:'Noto Sans SC',sans-serif;cursor:pointer;margin-top:8px}
+select.setting-input option{background:#1a1535;color:#fff}
+.save-toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-60px);background:rgba(192,132,252,0.9);color:#fff;padding:10px 24px;border-radius:24px;font-size:14px;z-index:300;transition:transform .3s}
+.save-toast.show{transform:translateX(-50%) translateY(0)}
+.save-toast.error{background:rgba(244,114,182,0.95)}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.cancel-btn{padding:14px;background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:16px;color:#fff;font-size:16px;font-weight:500;font-family:'Noto Sans SC',sans-serif;cursor:pointer}
+.btn-row .save-btn{margin-top:0}
+.noscript-msg{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(180deg,#0f0c29,#302b63);color:#fff;text-align:center;font-family:sans-serif;z-index:9999}
+
+/* Weather under clocks */
+.clock-weather{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;font-size:12px;color:rgba(255,255,255,0.55)}
+.clock-weather .w-emoji{font-size:14px}
+
+/* Heart click - clickable */
+.heart{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.heart:active{transform:scale(0.9)}
+.heart-particle{position:fixed;pointer-events:none;font-size:20px;z-index:150;will-change:transform,opacity;animation:floatUp 2.4s ease-out forwards}
+@keyframes floatUp{0%{opacity:1;transform:translate(-50%,-50%) scale(0.5) rotate(0deg)}30%{opacity:1;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy1))) scale(1) rotate(var(--rot))}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% - 220px)) scale(0.6) rotate(calc(var(--rot) * 2))}}
+
+/* Milestone banner */
+.milestone{margin:0 0 16px;padding:14px 18px;border-radius:16px;background:linear-gradient(135deg,rgba(192,132,252,0.25),rgba(244,114,182,0.25));border:1px solid rgba(255,255,255,0.18);text-align:center;font-size:14px;color:#fff;animation:slideIn .5s ease-out}
+.milestone .ms-emoji{font-size:22px;display:block;margin-bottom:4px}
+.milestone .ms-text{font-weight:500}
+.milestone .ms-sub{font-size:11px;color:rgba(255,255,255,0.55);margin-top:4px}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Onboarding */
+.onboard-overlay{position:fixed;inset:0;background:rgba(15,12,41,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:400;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .4s}
+.onboard-overlay.show{opacity:1;pointer-events:all}
+.onboard{max-width:340px;text-align:center;color:#fff}
+.onboard-emoji{font-size:64px;margin-bottom:16px;animation:pulse 1.5s ease-in-out infinite}
+.onboard-title{font-size:24px;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;font-family:'Playfair Display',serif}
+.onboard-text{font-size:15px;line-height:1.7;color:rgba(255,255,255,0.8);margin-bottom:28px}
+.onboard-btn{padding:14px 36px;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:24px;color:#fff;font-size:15px;font-weight:600;font-family:'Noto Sans SC',sans-serif;cursor:pointer;box-shadow:0 4px 20px rgba(192,132,252,0.4)}
+
+/* Seasonal effects layer */
+.season-canvas{position:fixed;inset:0;pointer-events:none;z-index:50}
+
+/* Memories timeline */
+.memories-card{padding:18px}
+.memories-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.memories-title{font-size:14px;color:rgba(255,255,255,0.6)}
+.memories-add{background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:14px;color:#fff;padding:6px 14px;font-size:13px;font-family:'Noto Sans SC',sans-serif;cursor:pointer;font-weight:500}
+.memories-list{display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;margin:0 -4px;padding:0 4px}
+.memories-list::-webkit-scrollbar{width:4px}
+.memories-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px}
+.memory-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:12px 14px;position:relative;transition:background .2s}
+.memory-item:hover{background:rgba(255,255,255,0.07)}
+.memory-meta{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:6px}
+.memory-tag{font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(192,132,252,0.18);color:#e0aaff}
+.memory-text{font-size:14px;line-height:1.55;color:rgba(255,255,255,0.85);white-space:pre-wrap;word-break:break-word}
+.memory-del{position:absolute;top:8px;right:8px;background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:14px;padding:4px;line-height:1;opacity:0;transition:opacity .2s}
+.memory-item:hover .memory-del,.memory-item:focus-within .memory-del{opacity:1}
+.memory-del:hover{color:rgba(255,150,150,0.9)}
+.memories-empty{text-align:center;font-size:13px;color:rgba(255,255,255,0.35);padding:24px 0}
+
+/* Memory editor modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:250;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(0.95);width:calc(100% - 32px);max-width:380px;background:linear-gradient(180deg,#1a1535,#0f0c29);border:1px solid var(--border);border-radius:20px;padding:22px 20px;z-index:251;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+.modal.open{opacity:1;pointer-events:all;transform:translate(-50%,-50%) scale(1)}
+.modal-title{font-size:16px;font-weight:700;text-align:center;margin-bottom:18px;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.modal textarea.setting-input{resize:vertical;min-height:90px;font-size:14px;line-height:1.5}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag-chip{font-size:12px;padding:6px 12px;border-radius:14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:rgba(255,255,255,0.7);cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+.tag-chip.active{background:linear-gradient(135deg,rgba(192,132,252,0.4),rgba(244,114,182,0.4));border-color:rgba(255,255,255,0.3);color:#fff}
+
+/* Sync section in drawer */
+.sync-section{margin-top:8px;padding-top:18px;border-top:1px solid var(--border)}
+.sync-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sync-btn{padding:12px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:14px;color:#fff;font-size:13px;font-family:'Noto Sans SC',sans-serif;cursor:pointer;font-weight:500}
+.sync-btn:hover{background:rgba(255,255,255,0.1)}
+.sync-hint{font-size:11px;color:rgba(255,255,255,0.4);text-align:center;margin-top:8px}
+
+/* Code modal */
+.code-display{background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:12px;padding:14px;font-family:monospace;font-size:13px;color:#e0aaff;word-break:break-all;line-height:1.6;max-height:140px;overflow-y:auto;margin-bottom:12px;text-align:center}
+.qr-wrap{background:#fff;padding:12px;border-radius:14px;display:flex;justify-content:center;margin-bottom:12px}
+.qr-wrap canvas{display:block;max-width:100%}
+
+/* Countdown stages */
+.countdown-card.cd-stage-30{background:linear-gradient(135deg,rgba(244,114,182,0.15),rgba(192,132,252,0.08));border-color:rgba(244,114,182,0.25)}
+.countdown-card.cd-stage-7{background:linear-gradient(135deg,rgba(244,114,182,0.28),rgba(251,146,60,0.18));border-color:rgba(244,114,182,0.45);animation:pulseSoft 2.4s ease-in-out infinite}
+.countdown-card.cd-stage-1{background:linear-gradient(135deg,rgba(251,191,36,0.35),rgba(244,114,182,0.3));border-color:rgba(251,191,36,0.55);animation:pulseSoft 1.6s ease-in-out infinite;box-shadow:0 0 30px rgba(251,191,36,0.25)}
+.countdown-card.cd-stage-today{background:linear-gradient(135deg,rgba(251,191,36,0.4),rgba(244,114,182,0.4),rgba(192,132,252,0.4));border-color:rgba(255,255,255,0.4);box-shadow:0 0 40px rgba(244,114,182,0.5)}
+@keyframes pulseSoft{0%,100%{box-shadow:0 0 0 rgba(244,114,182,0)}50%{box-shadow:0 0 24px rgba(244,114,182,0.35)}}
+.countdown-stage-msg{font-size:14px;color:#fff;font-weight:500;margin-top:10px;line-height:1.5}
+.countdown-place{font-size:12px;color:rgba(255,255,255,0.55);margin-top:6px}
+
+/* Voice memos */
+.voice-card{padding:18px}
+.voice-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.voice-title{font-size:14px;color:rgba(255,255,255,0.6)}
+.voice-record-btn{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;cursor:pointer;font-size:28px;color:#fff;box-shadow:0 4px 20px rgba(192,132,252,0.4);transition:transform .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center;margin:8px auto;flex-shrink:0;-webkit-tap-highlight-color:transparent;user-select:none}
+.voice-record-btn:active{transform:scale(0.92)}
+.voice-record-btn.recording{background:linear-gradient(135deg,#ef4444,#f472b6);animation:recordPulse 1s ease-in-out infinite}
+@keyframes recordPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.5)}50%{box-shadow:0 0 0 12px rgba(239,68,68,0)}}
+.voice-record-wrap{display:flex;flex-direction:column;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:14px}
+.voice-hint{font-size:12px;color:rgba(255,255,255,0.5);margin-top:8px;text-align:center}
+.voice-timer{font-family:'Playfair Display',serif;font-size:22px;color:var(--pink);font-weight:700;margin-top:6px;min-height:30px}
+.voice-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;margin:0 -4px;padding:0 4px}
+.voice-list::-webkit-scrollbar{width:4px}
+.voice-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px}
+.voice-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;position:relative}
+.voice-play-btn{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.voice-play-btn.playing{background:linear-gradient(135deg,#10b981,#06b6d4)}
+.voice-info{flex:1;min-width:0}
+.voice-meta{font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px}
+.voice-wave{height:24px;display:flex;align-items:center;gap:2px}
+.voice-wave .bar{flex:1;background:linear-gradient(180deg,var(--purple),var(--pink));border-radius:2px;min-width:2px;opacity:0.6}
+.voice-item.playing .voice-wave .bar.active{opacity:1;background:#fff}
+.voice-del{background:none;border:none;color:rgba(255,255,255,0.35);cursor:pointer;font-size:14px;padding:6px;line-height:1}
+.voice-del:hover{color:rgba(255,150,150,0.9)}
+.voice-empty{text-align:center;font-size:13px;color:rgba(255,255,255,0.35);padding:20px 0}
+
+/* Fireworks layer (meetup day) */
+.fw-canvas{position:fixed;inset:0;pointer-events:none;z-index:60;display:none}
+.fw-canvas.show{display:block}
+</style>
+</head>
+<body class="sky-night">
+<noscript><div class="noscript-msg"><div><h2 style="margin-bottom:12px">💕 我们的小窝</h2><p>这个小窝需要 JavaScript 才能运行。<br>请在浏览器设置里开启 JavaScript 后刷新页面。</p></div></div></noscript>
+<canvas id="stars"></canvas>
+<canvas id="seasonCanvas" class="season-canvas"></canvas>
+<canvas id="fwCanvas" class="fw-canvas"></canvas>
+<div class="app">
+  <div class="header">
+    <span class="name" id="nameA">你</span>
+    <div class="heart-wrap"><span class="heart" id="heartBtn" role="button" aria-label="点一下">❤️</span></div>
+    <span class="name" id="nameB">TA</span>
+  </div>
+
+  <div id="milestoneBanner"></div>
+
+  <div class="card days-card">
+    <div class="days-label">我们在一起</div>
+    <div><span class="days-num" id="daysNum">0</span><span class="days-unit">天了</span></div>
+    <div class="days-since" id="daysSince"></div>
+  </div>
+
+  <div class="clocks">
+    <div class="card clock-card">
+      <div class="clock-city" id="cityAName">上海</div>
+      <div class="clock-time" id="clockA">--:--:--</div>
+      <div class="clock-date" id="dateA"></div>
+      <div class="clock-weather" id="weatherA"></div>
+    </div>
+    <div class="card clock-card">
+      <div class="clock-city" id="cityBName">纽约</div>
+      <div class="clock-time" id="clockB">--:--:--</div>
+      <div class="clock-date" id="dateB"></div>
+      <div class="clock-weather" id="weatherB"></div>
+    </div>
+  </div>
+
+  <!-- Map -->
+  <div class="card map-card">
+    <div class="map-title">✈️ 我们之间的距离</div>
+    <div class="map-wrap">
+      <canvas id="mapCanvas" width="800" height="400" style="width:100%;height:auto;display:block;border-radius:12px"></canvas>
+    </div>
+    <div style="text-align:center;margin-top:8px;font-size:12px;color:rgba(255,255,255,0.4)" id="distLabel"></div>
+  </div>
+
+  <div class="card countdown-card" id="countdownCard">
+    <div class="countdown-label">距离下次见面</div>
+    <div id="countdownContent">
+      <div class="countdown-grid">
+        <div class="cd-item"><div class="cd-num" id="cdDays">0</div><div class="cd-unit">天</div></div>
+        <div class="cd-item"><div class="cd-num" id="cdHours">0</div><div class="cd-unit">时</div></div>
+        <div class="cd-item"><div class="cd-num" id="cdMins">0</div><div class="cd-unit">分</div></div>
+        <div class="cd-item"><div class="cd-num" id="cdSecs">0</div><div class="cd-unit">秒</div></div>
+      </div>
+    </div>
+    <div class="countdown-stage-msg" id="cdStageMsg"></div>
+    <div class="countdown-place" id="cdPlace"></div>
+  </div>
+
+  <div class="card voice-card">
+    <div class="voice-head">
+      <div class="voice-title">🎤 语音留言</div>
+    </div>
+    <div class="voice-record-wrap">
+      <button class="voice-record-btn" id="voiceRecBtn" aria-label="按住录音">🎙️</button>
+      <div class="voice-timer" id="voiceTimer"></div>
+      <div class="voice-hint" id="voiceHint">按住录音，松开保存 · 最长 30 秒</div>
+    </div>
+    <div class="voice-list" id="voiceList"></div>
+  </div>
+
+  <div class="card memories-card">
+    <div class="memories-head">
+      <div class="memories-title">📖 我们的回忆</div>
+      <button class="memories-add" id="memAddBtn">+ 记下一笔</button>
+    </div>
+    <div class="memories-list" id="memList"></div>
+  </div>
+
+</div>
+
+<button class="fab" id="fabBtn">⚙️</button>
+
+<div class="drawer-overlay" id="overlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">💕 我们的设置</div>
+
+  <div class="setting-row">
+    <div class="setting-label">你的名字</div>
+    <input class="setting-input" id="sNameA" placeholder="你" maxlength="10">
+  </div>
+  <div class="setting-row">
+    <div class="setting-label">TA 的名字</div>
+    <input class="setting-input" id="sNameB" placeholder="TA" maxlength="10">
+  </div>
+  <div class="setting-row">
+    <div class="setting-label">在一起的日期 💑</div>
+    <input class="setting-input" id="sAnniv" type="date">
+  </div>
+  <div class="setting-row">
+    <div class="setting-label">你所在的城市</div>
+    <input class="setting-input" id="sCityA" placeholder="上海" maxlength="20">
+  </div>
+  <div class="setting-row">
+    <div class="setting-label">你所在的时区</div>
+    <select class="setting-input" id="sTzA"></select>
+  </div>
+  <div class="setting-row">
+    <div class="setting-label">TA 所在的城市</div>
+    <input class="setting-input" id="sCityB" placeholder="纽约" maxlength="20">
+  </div>
+  <div class="setting-row">
+    <div class="setting-label">TA 所在的时区</div>
+    <select class="setting-input" id="sTzB"></select>
+  </div>
+  <div class="setting-row">
+    <div class="setting-label">房间名 🔑（两人填一样的才能同步）</div>
+    <input class="setting-input" id="sRoom" placeholder="例如：love2026" maxlength="30">
+  </div>
+  <div id="syncStatus" style="text-align:center;font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px;min-height:18px"></div>
+  <div class="setting-row">
+    <div class="setting-label">下次见面日期 ✈️</div>
+    <input class="setting-input" id="sMeetup" type="date">
+  </div>
+  <div class="setting-row">
+    <div class="setting-label">见面地点 📍（可选）</div>
+    <input class="setting-input" id="sMeetupPlace" placeholder="例如：上海虜桥机场 / TA 家楼下" maxlength="40">
+  </div>
+  <div class="btn-row">
+    <button class="cancel-btn" id="cancelBtn">取消</button>
+    <button class="save-btn" id="saveBtn">保存 ✨</button>
+  </div>
+
+  <div class="sync-section">
+    <div class="setting-label" style="text-align:center;margin-bottom:10px">两部手机同步 📱</div>
+    <div class="sync-row">
+      <button class="sync-btn" id="shareBtn">🔗 分享码 / 扫码</button>
+      <button class="sync-btn" id="importBtn">📝 输入分享码</button>
+    </div>
+    <div class="sync-hint">扫码同步设置和文字回忆（轻量快速）</div>
+    <div class="sync-row" style="margin-top:10px">
+      <button class="sync-btn" id="exportFileBtn">📦 导出备份</button>
+      <button class="sync-btn" id="importFileBtn">📥 选择文件</button>
+      <input type="file" id="importFileInput" accept="application/json,.json" style="display:none">
+    </div>
+    <div class="sync-hint">备份文件包含全部数据（含语音），适合首次配对、换手机</div>
+  </div>
+</div>
+
+<div class="save-toast" id="saveToast">已保存 💕</div>
+
+<!-- Memory editor modal -->
+<div class="modal-overlay" id="memModalOverlay"></div>
+<div class="modal" id="memModal">
+  <div class="modal-title" id="memModalTitle">记下今天 📝</div>
+  <div class="setting-row">
+    <div class="setting-label">日期</div>
+    <input class="setting-input" id="memDate" type="date">
+  </div>
+  <div class="setting-row">
+    <div class="setting-label">说点什么...</div>
+    <textarea class="setting-input" id="memText" placeholder="今天发生了什么值得记录的事？" maxlength="500"></textarea>
+  </div>
+  <div class="setting-row">
+    <div class="setting-label">标签</div>
+    <div class="tag-row" id="memTags"></div>
+  </div>
+  <div class="btn-row">
+    <button class="cancel-btn" id="memCancelBtn">取消</button>
+    <button class="save-btn" id="memSaveBtn">保存 💕</button>
+  </div>
+</div>
+
+<!-- Share/Import code modal -->
+<div class="modal-overlay" id="codeModalOverlay"></div>
+<div class="modal" id="codeModal">
+  <div class="modal-title" id="codeModalTitle">分享给 TA</div>
+  <div id="codeModalBody"></div>
+  <div class="btn-row">
+    <button class="cancel-btn" id="codeCloseBtn">关闭</button>
+    <button class="save-btn" id="codeActionBtn">复制</button>
+  </div>
+</div>
+
+<div class="onboard-overlay" id="onboardOverlay">
+  <div class="onboard">
+    <div class="onboard-emoji">💕</div>
+    <div class="onboard-title">欢迎来到你们的小窝</div>
+    <div class="onboard-text">这里属于你们两个人。<br>记录一起走过的日子，看看彼此那边的时间与天气，等待下次重逢。<br><br>告诉我们你们的故事吧 ✨</div>
+    <button class="onboard-btn" id="onboardBtn">开始 →</button>
+  </div>
+</div>
+
+<script>
+// ===== Stars =====
+(function(){
+  const c=document.getElementById('stars');if(!c)return;
+  const ctx=c.getContext&&c.getContext('2d');if(!ctx)return;
+  let stars=[];
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight;stars=[];for(let i=0;i<180;i++)stars.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.5+0.3,a:Math.random(),da:(Math.random()-0.5)*0.008})}
+  function draw(){ctx.clearRect(0,0,c.width,c.height);stars.forEach(s=>{s.a+=s.da;if(s.a<=0||s.a>=1)s.da*=-1;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${s.a})`;ctx.fill()});requestAnimationFrame(draw)}
+  window.addEventListener('resize',resize);resize();draw();
+})();
+
+// ===== Sky background based on city A local hour =====
+function getSkyClass(tz){
+  const h=parseInt(new Intl.DateTimeFormat('en',{timeZone:tz,hour:'numeric',hour12:false}).format(new Date()));
+  if(h>=5&&h<7)return'sky-dawn';
+  if(h>=7&&h<10)return'sky-morning';
+  if(h>=10&&h<17)return'sky-day';
+  if(h>=17&&h<20)return'sky-dusk';
+  return'sky-night';
+}
+function updateSky(){
+  const cls=getSkyClass(cfg.tzA);
+  document.body.className=cls;
+  const starsCanvas=document.getElementById('stars');
+  starsCanvas.style.opacity=(cls==='sky-night'||cls==='sky-dawn')?'1':'0.2';
+}
+
+// ===== Config =====
+const TIMEZONES=['Asia/Shanghai','Asia/Tokyo','Asia/Seoul','Asia/Singapore','Asia/Dubai','Europe/London','Europe/Paris','Europe/Berlin','America/New_York','America/Chicago','America/Los_Angeles','America/Toronto','Australia/Sydney','Pacific/Auckland'];
+const TZ_LABELS={'Asia/Shanghai':'上海/北京','Asia/Tokyo':'东京','Asia/Seoul':'首尔','Asia/Singapore':'新加坡','Asia/Dubai':'迪拜','Europe/London':'伦敦','Europe/Paris':'巴黎','Europe/Berlin':'柏林','America/New_York':'纽约','America/Chicago':'芝加哥','America/Los_Angeles':'洛杉矶','America/Toronto':'多伦多','Australia/Sydney':'悉尼','Pacific/Auckland':'奥克兰'};
+
+// City coordinates [lat, lng] for map projection
+const TZ_COORDS={
+  'Asia/Shanghai':[31.2,121.5],'Asia/Tokyo':[35.7,139.7],'Asia/Seoul':[37.6,127.0],
+  'Asia/Singapore':[1.3,103.8],'Asia/Dubai':[25.2,55.3],'Europe/London':[51.5,-0.1],
+  'Europe/Paris':[48.9,2.3],'Europe/Berlin':[52.5,13.4],'America/New_York':[40.7,-74.0],
+  'America/Chicago':[41.9,-87.6],'America/Los_Angeles':[34.1,-118.2],'America/Toronto':[43.7,-79.4],
+  'Australia/Sydney':[-33.9,151.2],'Pacific/Auckland':[-36.9,174.8]
+};
+// Built-in city coordinate dictionary. Covers most Chinese prefecture-level cities,
+// major Asia/EU/NA/Oceania cities, plus English aliases for common ones.
+const CITY_COORDS={
+  // 中国直辖市 + 省会
+  '北京':[39.9,116.4],'上海':[31.2,121.5],'天津':[39.1,117.2],'重庆':[29.6,106.5],
+  '广州':[23.1,113.3],'深圳':[22.5,114.1],'成都':[30.7,104.1],'杭州':[30.3,120.2],
+  '西安':[34.3,108.9],'南京':[32.1,118.8],'武汉':[30.6,114.3],'沈阳':[41.8,123.4],
+  '哈尔滨':[45.8,126.5],'长春':[43.9,125.3],'石家庄':[38.0,114.5],'济南':[36.7,117.0],
+  '郑州':[34.7,113.6],'太原':[37.9,112.6],'合肥':[31.8,117.3],'南昌':[28.7,115.9],
+  '长沙':[28.2,112.9],'福州':[26.1,119.3],'南宁':[22.8,108.4],'贵阳':[26.6,106.6],
+  '昆明':[25.0,102.7],'兰州':[36.1,103.8],'西宁':[36.6,101.8],'银川':[38.5,106.2],
+  '乌鲁木齐':[43.8,87.6],'拉萨':[29.7,91.1],'呼和浩特':[40.8,111.7],'海口':[20.0,110.3],
+  // 中国其他常见城市
+  '苏州':[31.3,120.6],'无锡':[31.5,120.3],'常州':[31.8,119.9],'南通':[32.0,120.9],
+  '扬州':[32.4,119.4],'徐州':[34.3,117.2],'嘉兴':[30.7,120.8],'温州':[28.0,120.7],
+  '绍兴':[30.0,120.6],'台州':[28.7,121.4],'宁波':[29.9,121.5],'金华':[29.1,119.6],
+  '泉州':[24.9,118.7],'厦门':[24.5,118.1],'东莞':[23.0,113.7],
+  '佛山':[23.0,113.1],'珠海':[22.3,113.6],'中山':[22.5,113.4],'惠州':[23.1,114.4],
+  '汕头':[23.4,116.7],'湛江':[21.3,110.4],'桃园':[24.9,121.3],'高雄':[22.6,120.3],
+  '台中':[24.1,120.7],'台南':[23.0,120.2],'黄山':[29.7,118.3],'芜湖':[31.4,118.4],
+  '马鞍山':[31.7,118.5],'阜阳':[32.6,117.0],'安庆':[30.5,117.1],
+  '联云港':[34.6,119.2],'盐城':[33.4,120.1],'淮安':[33.6,119.0],'宿迁':[33.9,118.3],
+  '临沂':[35.1,118.4],'烟台':[37.5,121.4],'青岛':[36.1,120.4],
+  '威海':[37.5,122.1],'潍坊':[36.7,119.2],'淄博':[36.8,118.1],'东营':[37.5,118.5],
+  '泰安':[36.2,117.1],'莱芜':[35.4,116.1],'聊城':[36.5,115.9],'菏泽':[35.2,115.5],
+  '德州':[37.4,116.4],'滨州':[37.4,118.0],
+  '宜昌':[30.7,111.3],'襄阳':[32.0,112.1],'荆州':[30.3,112.2],'荆门':[31.0,112.2],
+  '黄石':[30.2,115.0],'咸宁':[29.8,114.3],'恩施':[30.3,109.5],'鄂州':[30.4,113.4],
+  '衡阳':[26.9,112.6],'邵阳':[27.2,111.5],'岳阳':[29.4,113.1],'常德':[29.0,111.7],
+  '郴州':[25.8,113.0],'永州':[26.4,111.6],'娄底':[27.7,112.0],'怀化':[27.6,110.0],
+  '赣州':[25.8,114.9],'九江':[29.7,116.0],'上饶':[28.5,118.0],'抚州':[27.9,116.4],
+  '吉安':[27.1,115.0],'宜春':[27.8,114.4],'萍乡':[27.6,113.9],'新余':[27.8,114.9],
+  '鹰潭':[28.3,117.1],'景德镇':[29.3,117.2],
+  '潭州':[27.8,112.9],'朱洲':[28.8,113.1],'张家界':[29.1,110.5],'张家口':[40.8,114.9],
+  '保定':[38.9,115.5],'唐山':[39.6,118.2],'秦皇岛':[39.9,119.6],'邯郸':[36.6,114.5],
+  '邢台':[37.1,114.5],'沧州':[38.3,116.9],'廊坊':[39.5,116.7],'衡水':[37.7,115.7],
+  '承德':[40.9,117.9],'大同':[40.1,113.3],'阳泉':[37.9,113.6],
+  '长治':[36.2,113.1],'晋城':[35.5,112.9],'朔州':[39.3,112.4],'晋中':[37.7,112.7],
+  '运城':[35.0,111.0],'忻州':[38.4,112.7],'临汾':[36.1,111.5],'吕梁':[37.5,111.1],
+
+  // 中国县级/县级市中常见的
+  '昆山':[31.4,121.0],'江阴':[31.9,120.3],'宜兴':[31.4,119.8],'张家港':[32.0,120.6],
+  '义乌':[29.3,120.1],'慈溪':[30.2,121.3],'诸暨':[29.7,120.2],'诸城':[36.0,119.4],
+  '江阳':[37.8,114.0],'深州':[34.4,118.0],'永康':[28.9,120.0],'温岭':[28.4,121.4],
+  '临海':[28.9,121.1],'金坛':[31.7,119.6],'泰兴':[32.2,120.0],'海门':[31.9,121.2],
+  '仪征':[32.3,119.2],'当阳':[31.0,111.8],'宅州':[27.3,107.5],
+  // 香港澳门台湾
+  '香港':[22.3,114.2],'澳门':[22.2,113.5],'台北':[25.0,121.5],'新北':[25.0,121.5],
+  // 亚洲
+  '东京':[35.7,139.7],'大阪':[34.7,135.5],'京都':[35.0,135.8],'名古屋':[35.2,136.9],
+  '横滨':[35.4,139.6],'札幌':[43.1,141.4],'福冈':[33.6,130.4],'首尔':[37.6,127.0],
+  '釜山':[35.2,129.1],'平壤':[39.0,125.8],'新加坡':[1.3,103.8],'雅加达':[-6.2,106.8],
+  '吉隆坡':[3.1,101.7],'曼谷':[13.8,100.5],'胡志明市':[10.8,106.7],
+  '河内':[10.8,106.7],'马尼拉':[14.6,121.0],'仰光':[16.0,108.2],'金边':[10.0,105.8],
+  '孟买':[19.1,72.9],'新德里':[28.6,77.2],'加尔各答':[22.6,88.4],'班加罗尔':[12.97,77.6],
+  '多哈':[25.3,51.5],'利雅德':[24.7,46.7],'安卡拉':[39.9,32.9],
+  '伊斯坦布尔':[41.0,28.9],'特拉维夫':[32.1,34.8],'耶路撒冷':[31.8,35.2],
+  // 欧洲
+  '伦敦':[51.5,-0.1],'巴黎':[48.9,2.3],'柏林':[52.5,13.4],'马德里':[40.4,-3.7],
+  '罗马':[41.9,12.5],'马赛':[45.5,9.2],'里斯本':[38.7,-9.1],'巴塞罗那':[41.4,2.2],
+  '慕尼黑':[48.1,11.6],'法兰克福':[50.1,8.7],'汉堡':[53.6,10.0],
+  '斯德哥尔摩':[59.3,18.1],'赫尔辛基':[60.2,24.9],'奥斯陆':[59.9,10.8],
+  '阿姆斯特丹':[52.4,4.9],'哥本哈根':[55.7,12.6],
+  '雅典':[37.98,23.7],'维也纳':[48.2,16.4],'布拉格':[50.1,14.4],'华沙':[52.2,21.0],
+  // 北美
+  '莫斯科':[55.8,37.6],'圣彼得堡':[60.0,30.3],'基辅':[50.5,30.5],
+  '纽约':[40.7,-74.0],'洛杉矶':[34.1,-118.2],'芝加哥':[41.9,-87.6],'休斯顿':[29.8,-95.4],
+  '费城':[39.95,-75.2],'凤凰城':[33.5,-112.1],'圣安东尼奥':[29.4,-98.5],
+  '西雅图':[47.6,-122.3],'波特兰':[45.5,-122.7],'拉斯维加斯':[36.2,-115.1],
+  '圣地亚哥':[32.7,-117.2],'迈阿密':[25.8,-80.2],'奥兰多':[28.5,-81.4],
+  '亚特兰大':[33.7,-84.4],'波士顿':[42.4,-71.1],'华盛顿':[38.9,-77.0],
+  '多伦多':[43.7,-79.4],'温哥华':[49.3,-123.1],'蒙特利尔':[45.5,-73.6],
+  '渥太华':[45.4,-75.7],'卡尔加里':[51.0,-114.1],'埃德蒙顿':[53.5,-113.5],
+  '墨西哥城':[19.4,-99.1],'瓜达拉哈拉':[20.7,-103.4],
+  // 南美
+  '圣保罗':[-23.5,-46.6],'里约':[-22.9,-43.2],'布宜诺斯艾利斯':[-34.6,-58.4],
+  '圣地亚哥':[-33.4,-70.7],'利马':[-12.0,-77.0],'波哥大':[4.6,-74.1],
+  // 大洋洲
+  '悉尼':[-33.9,151.2],'墨尔本':[-37.8,144.96],'布里斯班':[-27.5,153.0],
+  '珀斯':[-31.95,115.86],'奥克兰':[-36.9,174.8],'惠灵顿':[-41.3,174.8],
+  // 非洲
+  '开罗':[30.05,31.2],'约翰内斯堡':[-26.2,28.0],'开普敦':[-33.9,18.4],
+  '迪拜':[25.2,55.3],'拉哥斯':[6.5,3.4],'内罗毕':[-1.3,36.8],
+  // English aliases (lowercase keyed lookup also handled below)
+  'beijing':[39.9,116.4],'shanghai':[31.2,121.5],'guangzhou':[23.1,113.3],'shenzhen':[22.5,114.1],
+  'hangzhou':[30.3,120.2],'kunshan':[31.4,121.0],'zhengzhou':[34.7,113.6],'suzhou':[31.3,120.6],
+  'tokyo':[35.7,139.7],'osaka':[34.7,135.5],'seoul':[37.6,127.0],'singapore':[1.3,103.8],
+  'london':[51.5,-0.1],'paris':[48.9,2.3],'berlin':[52.5,13.4],'new york':[40.7,-74.0],
+  'newyork':[40.7,-74.0],'nyc':[40.7,-74.0],'los angeles':[34.1,-118.2],'la':[34.1,-118.2],
+  'chicago':[41.9,-87.6],'toronto':[43.7,-79.4],'sydney':[-33.9,151.2],'melbourne':[-37.8,144.96],
+  'auckland':[-36.9,174.8],'dubai':[25.2,55.3],'mumbai':[19.1,72.9],'bangkok':[13.8,100.5],
+  'jakarta':[-6.2,106.8],'hanoi':[21.0,105.8],'manila':[14.6,121.0],'kuala lumpur':[3.1,101.7]
+};
+
+// Geocoding cache (persisted in localStorage)
+function geocodeCacheGet(name){
+  try{const all=JSON.parse(localStorage.getItem('geocache')||'{}');return all[name.toLowerCase().trim()]||null;}catch(_){return null}
+}
+function geocodeCacheSet(name,coord){
+  try{const all=JSON.parse(localStorage.getItem('geocache')||'{}');all[name.toLowerCase().trim()]=coord;localStorage.setItem('geocache',JSON.stringify(all));}catch(_){}
+}
+// Open-Meteo geocoding API (no key, supports Chinese names).
+// Fetches up to 5 results and picks the most populated one to avoid
+// matching tiny villages that share a name with a famous city.
+async function geocodeFetch(name){
+  try{
+    const url='https://geocoding-api.open-meteo.com/v1/search?count=5&language=zh&name='+encodeURIComponent(name);
+    const res=await fetch(url);
+    if(!res.ok)return null;
+    const data=await res.json();
+    if(data&&data.results&&data.results.length){
+      // Prefer results with population data; pick the largest one.
+      const sorted=data.results.slice().sort((a,b)=>(b.population||0)-(a.population||0));
+      const r=sorted[0];
+      return[r.latitude,r.longitude];
+    }
+  }catch(_){}
+  return null;
+}
+// Resolves a city name to [lat,lng]. Tries: dictionary -> cache -> geocoding API -> tz fallback.
+// If async lookup is needed, calls onResolved(coord) when ready.
+function resolveCoord(cityName,tz,onResolved){
+  if(cityName){
+    const trimmed=cityName.trim();
+    if(CITY_COORDS[trimmed])return CITY_COORDS[trimmed];
+    const lower=trimmed.toLowerCase();
+    if(CITY_COORDS[lower])return CITY_COORDS[lower];
+    const cached=geocodeCacheGet(trimmed);
+    if(cached)return cached;
+    // Async: trigger geocoding, run callback when done
+    if(typeof onResolved==='function'){
+      geocodeFetch(trimmed).then(coord=>{
+        if(coord){geocodeCacheSet(trimmed,coord);onResolved(coord);}
+      });
+    }
+  }
+  return TZ_COORDS[tz]||[31.2,121.5];
+}
+
+function loadSettings(){
+  return{
+    nameA:localStorage.getItem('nameA')||'你',
+    nameB:localStorage.getItem('nameB')||'TA',
+    anniv:localStorage.getItem('anniv')||'2024-01-01',
+    cityA:localStorage.getItem('cityA')||'上海',
+    tzA:localStorage.getItem('tzA')||'Asia/Shanghai',
+    cityB:localStorage.getItem('cityB')||'纽约',
+    tzB:localStorage.getItem('tzB')||'America/New_York',
+    meetup:localStorage.getItem('meetup')||'',
+    meetupPlace:localStorage.getItem('meetupPlace')||'',
+    room:localStorage.getItem('room')||''
+  }
+}
+function saveSettings(s){Object.keys(s).forEach(k=>localStorage.setItem(k,s[k]))}
+let cfg=loadSettings();
+
+function populateTz(){
+  ['sTzA','sTzB'].forEach(id=>{
+    const sel=document.getElementById(id);
+    sel.innerHTML='';
+    TIMEZONES.forEach(tz=>{
+      const o=document.createElement('option');
+      o.value=tz;o.textContent=TZ_LABELS[tz]||tz;
+      sel.appendChild(o);
+    });
+  });
+}
+populateTz();
+
+function applySettings(){
+  document.getElementById('nameA').textContent=cfg.nameA;
+  document.getElementById('nameB').textContent=cfg.nameB;
+  document.getElementById('cityAName').textContent=cfg.cityA;
+  document.getElementById('cityBName').textContent=cfg.cityB;
+}
+applySettings();
+
+// ===== Milestone banner (centennials, anniversaries) =====
+function renderMilestone(days){
+  const el=document.getElementById('milestoneBanner');
+  if(!el||days<=0){if(el)el.innerHTML='';return}
+  const anniv=parseLocalDate(cfg.anniv);if(!anniv){el.innerHTML='';return}
+  const today=startOfLocalDay(new Date());
+
+  // Today is the anniversary day itself? (yearly)
+  const annivThisYear=new Date(today.getFullYear(),anniv.getMonth(),anniv.getDate());
+  const yearsTogether=today.getFullYear()-anniv.getFullYear()-(today<annivThisYear?1:0);
+  const isAnnivToday=today.getMonth()===anniv.getMonth()&&today.getDate()===anniv.getDate()&&days>=365;
+
+  // Centennial: every 100 days. Only celebrate the exact day (within a 1-day window).
+  const isCentennial=days>0&&days%100===0;
+  // Round/special days
+  const special={520:'初恋',1314:'一生一世',999:'长久长久',888:'发发发发',666:'一路顺顺'}[days];
+
+  let html='';
+  if(isAnnivToday){
+    html='<span class="ms-emoji">🎉</span><div class="ms-text">今天是我们的纪念日</div><div class="ms-sub">在一起 '+yearsTogether+' 周年了 💕</div>';
+  }else if(special){
+    html='<span class="ms-emoji">💖</span><div class="ms-text">今天是我们的第 '+days+' 天</div><div class="ms-sub">'+special+'</div>';
+  }else if(isCentennial){
+    html='<span class="ms-emoji">✨</span><div class="ms-text">我们走过了 '+days+' 天</div><div class="ms-sub">谢谢你还在</div>';
+  }else{
+    // Days until next centennial / annual milestone
+    const nextCent=Math.ceil(days/100)*100;
+    const toCent=nextCent-days;
+    if(toCent<=7&&toCent>0){
+      html='<span class="ms-emoji">🎁</span><div class="ms-text">还有 '+toCent+' 天就要 '+nextCent+' 天了</div><div class="ms-sub">要不要准备个惊喜 ✨</div>';
+    }else{
+      const nextAnniv=annivThisYear<today?new Date(today.getFullYear()+1,anniv.getMonth(),anniv.getDate()):annivThisYear;
+      const toAnniv=Math.round((nextAnniv-today)/(86400000));
+      if(toAnniv<=14&&toAnniv>0){
+        html='<span class="ms-emoji">🌸</span><div class="ms-text">还有 '+toAnniv+' 天就是纪念日了</div><div class="ms-sub">一起期待吧</div>';
+      }
+    }
+  }
+  el.innerHTML=html?'<div class="milestone">'+html+'</div>':'';
+}
+
+// ===== Weather (Open-Meteo current + WMO code mapping) =====
+const WMO={0:['☀️','晴'],1:['🌤️','多云'],2:['⛅️','云'],3:['☁️','阴'],45:['🌫️','雾'],48:['🌫️','霉雾'],51:['🌦️','毛雨'],53:['🌦️','毛雨'],55:['🌧️','毛雨'],61:['🌦️','小雨'],63:['🌧️','雨'],65:['🌧️','大雨'],71:['🌨️','小雪'],73:['🌨️','雪'],75:['🌨️','大雪'],77:['🌨️','雪粒'],80:['🌦️','阵雨'],81:['🌧️','阵雨'],82:['⛈️','暴雨'],85:['🌨️','阵雪'],86:['🌨️','阵雪'],95:['⛈️','雷雨'],96:['⛈️','雷雨冰雹'],99:['⛈️','雷雨冰雹']};
+function weatherCacheKey(lat,lng){return'wx_'+lat.toFixed(2)+','+lng.toFixed(2)}
+async function fetchWeather(lat,lng){
+  // 30-min cache
+  try{
+    const k=weatherCacheKey(lat,lng);
+    const cached=JSON.parse(localStorage.getItem(k)||'null');
+    if(cached&&Date.now()-cached.ts<30*60*1000)return cached.data;
+  }catch(_){}
+  try{
+    const url='https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code&latitude='+lat+'&longitude='+lng;
+    const res=await fetch(url);
+    if(!res.ok)return null;
+    const d=await res.json();
+    if(!d||!d.current)return null;
+    const out={t:Math.round(d.current.temperature_2m),code:d.current.weather_code};
+    try{localStorage.setItem(weatherCacheKey(lat,lng),JSON.stringify({ts:Date.now(),data:out}))}catch(_){}
+    return out;
+  }catch(_){return null}
+}
+async function updateWeather(){
+  const a=resolveCoord(cfg.cityA,cfg.tzA),b=resolveCoord(cfg.cityB,cfg.tzB);
+  for(const [coord,id] of [[a,'weatherA'],[b,'weatherB']]){
+    const el=document.getElementById(id);if(!el)continue;
+    const w=await fetchWeather(coord[0],coord[1]);
+    if(w&&typeof w.t==='number'){
+      const m=WMO[w.code]||['🌤️',''];
+      el.innerHTML='<span class="w-emoji">'+m[0]+'</span><span>'+w.t+'° '+m[1]+'</span>';
+    }else{
+      el.innerHTML='';
+    }
+  }
+}
+
+// ===== Heart click - particle burst =====
+function spawnHeartParticles(originX,originY){
+  const emojis=['❤️','💖','💕','💗','💓','✨','💝'];
+  const count=10+Math.floor(Math.random()*6);
+  for(let i=0;i<count;i++){
+    const p=document.createElement('div');
+    p.className='heart-particle';
+    p.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    const angle=(-Math.PI/2)+(Math.random()-0.5)*Math.PI*0.9;
+    const dist=80+Math.random()*120;
+    const dx=Math.cos(angle)*dist;
+    const dy1=Math.sin(angle)*dist;
+    const rot=(Math.random()-0.5)*60;
+    p.style.left=originX+'px';
+    p.style.top=originY+'px';
+    p.style.setProperty('--dx',dx+'px');
+    p.style.setProperty('--dy1',dy1+'px');
+    p.style.setProperty('--rot',rot+'deg');
+    p.style.animationDelay=(Math.random()*0.15)+'s';
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),2700);
+  }
+  if(navigator.vibrate)try{navigator.vibrate(20)}catch(_){}
+}
+
+// ===== Seasonal background effects =====
+// Falls back gracefully on low-end devices via prefers-reduced-motion.
+const prefersReducedMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function getActiveSeason(){
+  const now=new Date();
+  const m=now.getMonth()+1,d=now.getDate();
+  // Anniversary day
+  const anniv=parseLocalDate(cfg.anniv);
+  if(anniv&&anniv.getMonth()+1===m&&anniv.getDate()===d){
+    return{kind:'hearts',name:'纪念日'};
+  }
+  // Valentine's
+  if(m===2&&d===14)return{kind:'hearts',name:'情人节'};
+  // Qixi (rough lunar 7/7 → fallback to fixed Aug 25 +/- few days; better: use solar approximation)
+  // Skip lunar for now to avoid heavy code; users can still get hearts on anniv/valentines.
+  // Christmas / December snow
+  if(m===12)return{kind:'snow',name:'冬季'};
+  if(m===1)return{kind:'snow',name:'冬季'};
+  // Spring sakura March-April
+  if(m===3||m===4)return{kind:'sakura',name:'春天'};
+  return null;
+}
+let seasonRaf=null,seasonParticles=[];
+function startSeason(){
+  const cv=document.getElementById('seasonCanvas');
+  if(!cv||!cv.getContext)return;
+  const season=getActiveSeason();
+  if(!season||prefersReducedMotion){cv.style.display='none';if(seasonRaf)cancelAnimationFrame(seasonRaf);seasonRaf=null;seasonParticles=[];return}
+  cv.style.display='block';
+  const ctx=cv.getContext('2d');
+  if(!ctx)return;
+  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  const conf={
+    snow:{n:60,emoji:['❄️','❅️','·'],sz:[10,18],speed:[0.3,1.2],sway:0.5},
+    sakura:{n:40,emoji:['🌸','🌸','🌼'],sz:[14,22],speed:[0.4,1.4],sway:1.5},
+    hearts:{n:25,emoji:['❤️','💖','💕','💗'],sz:[14,24],speed:[0.4,1.0],sway:1.0}
+  }[season.kind];
+  seasonParticles=[];
+  for(let i=0;i<conf.n;i++){
+    seasonParticles.push({
+      x:Math.random()*cv.width,y:Math.random()*cv.height,
+      sz:conf.sz[0]+Math.random()*(conf.sz[1]-conf.sz[0]),
+      vy:conf.speed[0]+Math.random()*(conf.speed[1]-conf.speed[0]),
+      drift:Math.random()*Math.PI*2,driftSpeed:0.005+Math.random()*0.01,
+      sway:conf.sway,emoji:conf.emoji[Math.floor(Math.random()*conf.emoji.length)],
+      rot:Math.random()*Math.PI*2,vr:(Math.random()-0.5)*0.02
+    });
+  }
+  function tick(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    seasonParticles.forEach(p=>{
+      p.y+=p.vy;p.drift+=p.driftSpeed;p.rot+=p.vr;
+      p.x+=Math.sin(p.drift)*p.sway;
+      if(p.y>cv.height+30){p.y=-30;p.x=Math.random()*cv.width}
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.font=p.sz+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.emoji,0,0);ctx.restore();
+    });
+    seasonRaf=requestAnimationFrame(tick);
+  }
+  if(seasonRaf)cancelAnimationFrame(seasonRaf);
+  tick();
+}
+
+// ===== Memories (local timeline) =====
+const MEMORY_TAGS=[{key:'date',emoji:'💗',label:'约会'},{key:'call',emoji:'📞',label:'电话'},{key:'gift',emoji:'🎁',label:'礼物'},{key:'travel',emoji:'✈️',label:'旅行'},{key:'food',emoji:'🍰',label:'美食'},{key:'milestone',emoji:'✨',label:'里程碑'},{key:'argue',emoji:'🌧️',label:'小争执'},{key:'other',emoji:'💭',label:'其他'}];
+function loadMemories(){
+  try{return JSON.parse(localStorage.getItem('memories')||'[]')}catch(_){return[]}
+}
+function saveMemories(arr){
+  try{localStorage.setItem('memories',JSON.stringify(arr))}catch(_){}
+}
+function memTagInfo(key){return MEMORY_TAGS.find(t=>t.key===key)||MEMORY_TAGS[7]}
+function formatMemDate(s){
+  const d=parseLocalDate(s);if(!d)return s;
+  return new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'short'}).format(d);
+}
+function renderMemories(){
+  const list=document.getElementById('memList');if(!list)return;
+  const items=loadMemories().sort((a,b)=>(a.date<b.date?1:-1));
+  if(!items.length){list.innerHTML='<div class="memories-empty">还没有回忆，从今天开始记录吧 💕</div>';return}
+  list.innerHTML=items.map(m=>{
+    const tag=memTagInfo(m.tag);
+    const text=(m.text||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+    return '<div class="memory-item" data-id="'+m.id+'"><button class="memory-del" aria-label="删除">✕</button><div class="memory-meta"><span class="memory-tag">'+tag.emoji+' '+tag.label+'</span><span>'+formatMemDate(m.date)+'</span></div><div class="memory-text">'+text+'</div></div>';
+  }).join('');
+  // Wire delete buttons
+  list.querySelectorAll('.memory-del').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const id=btn.parentElement.dataset.id;
+      if(!confirm('删掉这条回忆吗？'))return;
+      saveMemories(loadMemories().filter(m=>String(m.id)!==String(id)));
+      if(typeof syncDeleteMemory==='function')syncDeleteMemory(id);
+      renderMemories();
+    });
+  });
+}
+
+// Memory editor modal
+let currentEditTags='other';
+function renderMemTagPicker(){
+  const row=document.getElementById('memTags');if(!row)return;
+  row.innerHTML=MEMORY_TAGS.map(t=>'<button type="button" class="tag-chip'+(t.key===currentEditTags?' active':'')+'" data-tag="'+t.key+'">'+t.emoji+' '+t.label+'</button>').join('');
+  row.querySelectorAll('.tag-chip').forEach(c=>{
+    c.addEventListener('click',()=>{currentEditTags=c.dataset.tag;renderMemTagPicker();});
+  });
+}
+function openMemModal(){
+  currentEditTags='other';
+  const today=new Date();
+  const iso=today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
+  document.getElementById('memDate').value=iso;
+  document.getElementById('memText').value='';
+  renderMemTagPicker();
+  document.getElementById('memModalOverlay').classList.add('open');
+  document.getElementById('memModal').classList.add('open');
+  setTimeout(()=>document.getElementById('memText').focus(),100);
+}
+function closeMemModal(){
+  document.getElementById('memModalOverlay').classList.remove('open');
+  document.getElementById('memModal').classList.remove('open');
+}
+function saveMemFromModal(){
+  const date=document.getElementById('memDate').value;
+  const text=document.getElementById('memText').value.trim();
+  if(!text){showToast('写点什么再保存吧 🤔',true);return}
+  if(!date){showToast('请选个日期',true);return}
+  const all=loadMemories();
+  const newMem={id:Date.now()+'_'+Math.random().toString(36).slice(2,7),date:date,tag:currentEditTags,text:text};
+  all.push(newMem);
+  saveMemories(all);
+  if(typeof syncPushMemory==='function')syncPushMemory(newMem);
+  closeMemModal();
+  renderMemories();
+  showToast('记下了 📖');
+}
+renderMemories();
+
+// ===== Sync: share code + import =====
+// Compact text payload that fits in a URL hash, base64-url encoded.
+function buildSyncPayload(){
+  const data={
+    v:1,
+    s:loadSettings(),
+    m:loadMemories()
+  };
+  return data;
+}
+function encodePayload(obj){
+  const json=JSON.stringify(obj);
+  // UTF-8 safe base64
+  const bytes=new TextEncoder().encode(json);
+  let bin='';for(const b of bytes)bin+=String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function decodePayload(code){
+  try{
+    let s=code.trim().replace(/-/g,'+').replace(/_/g,'/');
+    while(s.length%4)s+='=';
+    const bin=atob(s);
+    const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+    const json=new TextDecoder().decode(bytes);
+    return JSON.parse(json);
+  }catch(_){return null}
+}
+function openShareModal(){
+  const payload=buildSyncPayload();
+  const code=encodePayload(payload);
+  const url=location.origin+location.pathname+'#sync='+code;
+  document.getElementById('codeModalTitle').textContent='分享给 TA 💌';
+  const body=document.getElementById('codeModalBody');
+  body.innerHTML='<div class="qr-wrap"><canvas id="qrCanvas"></canvas></div>'+
+    '<div class="setting-label" style="margin-bottom:6px">或者复制这段代码：</div>'+
+    '<div class="code-display" id="codeText">'+code+'</div>'+
+    '<div class="sync-hint">TA 可以扫上面二维码，或者点“输入分享码”粘贴代码</div>';
+  document.getElementById('codeActionBtn').textContent='复制代码';
+  document.getElementById('codeActionBtn').onclick=()=>{
+    navigator.clipboard&&navigator.clipboard.writeText(code).then(()=>showToast('已复制 📋'),()=>showToast('复制失败，请手动选择',true));
+  };
+  document.getElementById('codeModalOverlay').classList.add('open');
+  document.getElementById('codeModal').classList.add('open');
+  // Render QR (sync version)
+  setTimeout(()=>renderQR('qrCanvas',url),50);
+}
+function openImportModal(){
+  document.getElementById('codeModalTitle').textContent='输入分享码 📝';
+  const body=document.getElementById('codeModalBody');
+  body.innerHTML='<div class="setting-row"><textarea class="setting-input" id="importCode" placeholder="粘贴 TA 发来的代码或链接..." style="min-height:120px;font-family:monospace;font-size:12px"></textarea></div>'+
+    '<div class="sync-hint">你现有的设置会被覆盖，回忆会合并</div>';
+  document.getElementById('codeActionBtn').textContent='导入 ✨';
+  document.getElementById('codeActionBtn').onclick=()=>{
+    const raw=document.getElementById('importCode').value.trim();
+    if(!raw){showToast('粘贴代码后再试',true);return}
+    // Accept either the bare code or a full URL
+    const m=raw.match(/#sync=([\w\-_]+)/);
+    const code=m?m[1]:raw;
+    const data=decodePayload(code);
+    if(!data||!data.s){showToast('代码不对劲 😕',true);return}
+    applySyncPayload(data);
+    closeCodeModal();
+    showToast('同步成功 💕');
+  };
+  document.getElementById('codeModalOverlay').classList.add('open');
+  document.getElementById('codeModal').classList.add('open');
+  setTimeout(()=>document.getElementById('importCode').focus(),100);
+}
+function closeCodeModal(){
+  document.getElementById('codeModalOverlay').classList.remove('open');
+  document.getElementById('codeModal').classList.remove('open');
+}
+function applySyncPayload(data){
+  if(data.s){saveSettings(data.s);cfg=loadSettings();}
+  if(Array.isArray(data.m)){
+    // Merge by id
+    const existing=loadMemories();
+    const seen=new Set(existing.map(x=>x.id));
+    data.m.forEach(m=>{if(m&&m.id&&!seen.has(m.id))existing.push(m)});
+    saveMemories(existing);
+  }
+  applySettings();updateDays();updateClocks();updateCountdown();updateSky();drawMap();updateWeather();startSeason();renderMemories();renderMeetupPlace();
+}
+// ===== Backup file (full export/import incl. voice memos) =====
+// Encodes Blob ↔ base64 (chunked to avoid call-stack issues with very large blobs)
+function blobToBase64(blob){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>{
+      // r.result is data URL: 'data:audio/webm;base64,XXXX'
+      const s=r.result||'';
+      const i=s.indexOf(',');
+      res(i<0?'':s.slice(i+1));
+    };
+    r.onerror=()=>rej(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+function base64ToBlob(b64,mime){
+  const bin=atob(b64);
+  const len=bin.length;
+  const buf=new Uint8Array(len);
+  for(let i=0;i<len;i++)buf[i]=bin.charCodeAt(i);
+  return new Blob([buf],{type:mime||'application/octet-stream'});
+}
+function humanSize(bytes){
+  if(bytes<1024)return bytes+' B';
+  if(bytes<1024*1024)return (bytes/1024).toFixed(1)+' KB';
+  return (bytes/1024/1024).toFixed(1)+' MB';
+}
+async function buildBackup(){
+  const voices=await voiceList();
+  const voicesEncoded=[];
+  for(const v of voices){
+    if(!v.blob)continue;
+    const b64=await blobToBase64(v.blob);
+    voicesEncoded.push({id:v.id,ts:v.ts,duration:v.duration,peaks:v.peaks,mime:v.mime||v.blob.type||'audio/webm',data:b64});
+  }
+  return{
+    v:1,
+    type:'lovenest-backup',
+    exported:Date.now(),
+    settings:loadSettings(),
+    memories:loadMemories(),
+    voices:voicesEncoded
+  };
+}
+async function exportBackupFile(){
+  showToast('打包中... 📦');
+  let backup;
+  try{backup=await buildBackup()}catch(e){showToast('备份失败 😕',true);return}
+  const json=JSON.stringify(backup);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const ts=new Date();
+  const stamp=ts.getFullYear()+pad(ts.getMonth()+1)+pad(ts.getDate())+'_'+pad(ts.getHours())+pad(ts.getMinutes());
+  a.href=url;a.download='lovenest-backup-'+stamp+'.json';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},500);
+  const stats=backup.memories.length+' 条回忆·'+backup.voices.length+' 条语音·'+humanSize(blob.size);
+  showToast('已导出：'+stats);
+}
+async function importBackupFile(file){
+  if(!file){showToast('没选中文件 🤔',true);return}
+  if(file.size>50*1024*1024){showToast('文件太大啦 😕',true);return}
+  let data;
+  try{
+    const text=await file.text();
+    data=JSON.parse(text);
+  }catch(_){showToast('文件不对劲 😕',true);return}
+  if(!data||data.type!=='lovenest-backup'||!data.settings){showToast('不是有效的备份文件 😕',true);return}
+  if(!confirm('要导入这份备份吗？\n\n包含：'+(data.memories||[]).length+' 条回忆、'+(data.voices||[]).length+' 条语音留言\n\n设置会被覆盖，回忆和语音会合并')){return}
+  // Settings
+  if(data.settings){saveSettings(data.settings);cfg=loadSettings();}
+  // Memories merge
+  if(Array.isArray(data.memories)){
+    const existing=loadMemories();
+    const seen=new Set(existing.map(x=>x.id));
+    data.memories.forEach(m=>{if(m&&m.id&&!seen.has(m.id))existing.push(m)});
+    saveMemories(existing);
+  }
+  // Voices merge (decode base64 → blob)
+  let added=0;
+  if(Array.isArray(data.voices)){
+    try{
+      const existing=await voiceList();
+      const seen=new Set(existing.map(v=>v.id));
+      for(const v of data.voices){
+        if(!v||!v.id||seen.has(v.id)||!v.data)continue;
+        try{
+          const blob=base64ToBlob(v.data,v.mime);
+          await voiceSave({id:v.id,ts:v.ts,duration:v.duration,peaks:v.peaks||[],blob,mime:v.mime});
+          added++;
+        }catch(_){}
+      }
+    }catch(_){}
+  }
+  // Re-render
+  applySettings();updateDays();updateClocks();updateCountdown();updateSky();drawMap();updateWeather();startSeason();renderMemories();renderMeetupPlace();renderVoices();
+  showToast('导入成功：新增 '+added+' 条语音 💕');
+}
+
+// Auto-import from URL hash on load (#sync=...)
+(function autoImportFromHash(){
+  const m=location.hash.match(/#sync=([\w\-_]+)/);
+  if(!m)return;
+  const data=decodePayload(m[1]);
+  if(!data||!data.s)return;
+  // Defer to next tick so DOM/handlers are ready
+  setTimeout(()=>{
+    if(confirm('检测到 TA 发来的同步代码，要导入吗？\n\n你现有的设置会被替换，回忆会合并。')){
+      applySyncPayload(data);
+      showToast('同步完成 💕');
+      // Clean URL
+      history.replaceState(null,'',location.pathname);
+    }
+  },800);
+})();
+
+// ===== Tiny inline QR encoder (Numeric/8bit, version auto, ECC L) =====
+// Public-domain implementation, ~3KB minified. Adapted to render to canvas.
+const QR=(function(){
+  // Galois field tables
+  const EXP=new Uint8Array(512),LOG=new Uint8Array(256);
+  let x=1;for(let i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&0x100)x^=0x11d}for(let i=255;i<512;i++)EXP[i]=EXP[i-255];
+  function gmul(a,b){return a&&b?EXP[LOG[a]+LOG[b]]:0}
+  function rsGen(deg){let p=[1];for(let i=0;i<deg;i++){const np=new Array(p.length+1).fill(0);for(let j=0;j<p.length;j++){np[j]^=gmul(p[j],EXP[i])}for(let j=1;j<np.length;j++){np[j]^=p[j-1]}p=np}return p}
+  function rsEncode(data,deg){const gen=rsGen(deg);const buf=data.concat(new Array(deg).fill(0));for(let i=0;i<data.length;i++){const c=buf[i];if(c){for(let j=0;j<gen.length;j++){buf[i+j]^=gmul(gen[j],c)}}}return buf.slice(data.length)}
+  // Capacity table for ECC L (max bytes per version, byte mode). Index = version 1..40.
+  const CAP_L=[null,17,32,53,78,106,134,154,192,230,271,321,367,425,458,520,586,644,718,792,858,929,1003,1091,1171,1273,1367,1465,1528,1628,1732,1840,1952,2068,2188,2303,2431,2563,2699,2809,2953];
+  // ECC L codewords (data + ecc per group)
+  const ECC_L=[null,[19,7,1,19,0,0],[34,10,1,34,0,0],[55,15,1,55,0,0],[80,20,1,80,0,0],[108,26,1,108,0,0],[136,18,2,68,0,0],[156,20,2,78,0,0],[194,24,2,97,0,0],[232,30,2,116,0,0],[274,18,2,68,2,69],[324,20,4,81,0,0],[370,24,2,92,2,93],[428,26,4,107,0,0],[461,30,3,115,1,116],[523,22,5,87,1,88],[589,24,5,98,1,99],[647,28,1,107,5,108],[721,30,5,120,1,121],[795,28,3,113,4,114],[861,28,3,107,5,108],[932,28,4,116,4,117],[1006,28,2,111,7,112],[1094,30,4,121,5,122],[1174,30,6,117,4,118],[1276,26,8,106,4,107],[1370,28,10,114,2,115],[1468,30,8,122,4,123],[1531,30,3,117,10,118],[1631,30,7,116,7,117],[1735,30,5,115,10,116],[1843,30,13,115,3,116],[1955,30,17,115,0,0],[2071,30,17,115,1,116],[2191,30,13,115,6,116],[2306,30,12,121,7,122],[2434,30,6,121,14,122],[2566,30,17,122,4,123],[2702,30,4,122,18,123],[2812,30,20,117,4,118],[2956,30,19,118,6,119]];
+  function pickVersion(len){for(let v=1;v<=40;v++)if(CAP_L[v]>=len+2)return v;throw new Error('too long')}
+  // Build raw data bits for byte mode
+  function buildBits(bytes,version){
+    const lenBits=version<10?8:16;
+    const total=CAP_L[version]*8;
+    const bits=[];
+    function push(val,n){for(let i=n-1;i>=0;i--)bits.push((val>>i)&1)}
+    push(0b0100,4); // byte mode
+    push(bytes.length,lenBits);
+    for(const b of bytes)push(b,8);
+    // Terminator
+    for(let i=0;i<4&&bits.length<total;i++)bits.push(0);
+    while(bits.length%8)bits.push(0);
+    // Padding
+    let pad=0;while(bits.length<total){push(pad===0?0xEC:0x11,8);pad^=1}
+    // To bytes
+    const out=[];for(let i=0;i<bits.length;i+=8){let v=0;for(let j=0;j<8;j++)v=(v<<1)|bits[i+j];out.push(v)}
+    return out;
+  }
+  function interleave(blocks,version){
+    const e=ECC_L[version];const eccLen=e[1];
+    let pos=2;const groups=[];const totalData=e[0];
+    let dataIdx=0;
+    for(let g=2;g<e.length;g+=2){
+      const numBlocks=e[g],blockLen=e[g+1];if(!numBlocks)continue;
+      for(let b=0;b<numBlocks;b++){
+        const dataBlock=blocks.slice(dataIdx,dataIdx+blockLen);dataIdx+=blockLen;
+        const ecc=rsEncode(dataBlock,eccLen);
+        groups.push({d:dataBlock,e:ecc});
+      }
+    }
+    // Interleave data
+    const result=[];
+    const maxD=Math.max(...groups.map(g=>g.d.length));
+    for(let i=0;i<maxD;i++)for(const g of groups)if(i<g.d.length)result.push(g.d[i]);
+    for(let i=0;i<eccLen;i++)for(const g of groups)result.push(g.e[i]);
+    return result;
+  }
+  // Module placement
+  function size(v){return v*4+17}
+  function placeFinder(m,x,y){for(let dy=-1;dy<=7;dy++)for(let dx=-1;dx<=7;dx++){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=m.length||yy>=m.length)continue;const v=(dx>=0&&dx<=6&&(dy===0||dy===6))||(dy>=0&&dy<=6&&(dx===0||dx===6))||(dx>=2&&dx<=4&&dy>=2&&dy<=4)?1:0;m[yy][xx]={v:v,r:1}}}
+  function placeTiming(m){const n=m.length;for(let i=8;i<n-8;i++){if(!m[6][i])m[6][i]={v:i%2===0?1:0,r:1};if(!m[i][6])m[i][6]={v:i%2===0?1:0,r:1}}}
+  function placeAlignment(m,version){
+    if(version<2)return;
+    // Alignment pattern positions
+    const POS=[null,[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90]];
+    const pts=POS[version]||[];
+    for(const x of pts)for(const y of pts){
+      if(m[y][x]&&m[y][x].r)continue;
+      for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
+        const v=(Math.max(Math.abs(dx),Math.abs(dy))!==1)?1:0;
+        m[y+dy][x+dx]={v:v,r:1};
+      }
+    }
+  }
+  function placeFormat(m,maskId){
+    // Format info bits (ECC L = 01, mask 3 bits)
+    const data=(0b01<<3)|maskId;
+    let bch=data<<10;const POLY=0b10100110111;
+    for(let i=14;i>=10;i--)if(bch&(1<<i))bch^=POLY<<(i-10);
+    const bits=((data<<10)|bch)^0b101010000010010;
+    const n=m.length;
+    function set(x,y,b){m[y][x]={v:b,r:1}}
+    for(let i=0;i<6;i++)set(8,i,(bits>>i)&1);
+    set(8,7,(bits>>6)&1);set(8,8,(bits>>7)&1);set(7,8,(bits>>8)&1);
+    for(let i=9;i<15;i++)set(14-i,8,(bits>>i)&1);
+    for(let i=0;i<8;i++)set(n-1-i,8,(bits>>i)&1);
+    for(let i=8;i<15;i++)set(8,n-15+i,(bits>>i)&1);
+    set(8,n-8,1);
+  }
+  function placeData(m,bytes){
+    const n=m.length;let bitIdx=0;let up=true;
+    for(let x=n-1;x>0;x-=2){
+      if(x===6)x--;
+      for(let row=0;row<n;row++){
+        const y=up?n-1-row:row;
+        for(let dx=0;dx<2;dx++){
+          const xx=x-dx;
+          if(m[y][xx])continue;
+          const byte=bytes[bitIdx>>3]||0;
+          const bit=(byte>>(7-(bitIdx&7)))&1;
+          m[y][xx]={v:bit,r:0};bitIdx++;
+        }
+      }
+      up=!up;
+    }
+  }
+  function maskFn(id){return[
+    (r,c)=>(r+c)%2===0,(r,c)=>r%2===0,(r,c)=>c%3===0,(r,c)=>(r+c)%3===0,
+    (r,c)=>(Math.floor(r/2)+Math.floor(c/3))%2===0,(r,c)=>((r*c)%2)+((r*c)%3)===0,
+    (r,c)=>(((r*c)%2)+((r*c)%3))%2===0,(r,c)=>(((r+c)%2)+((r*c)%3))%2===0
+  ][id]}
+  function applyMask(m,maskId){
+    const fn=maskFn(maskId);
+    for(let y=0;y<m.length;y++)for(let x=0;x<m.length;x++){
+      if(m[y][x]&&!m[y][x].r&&fn(y,x))m[y][x].v^=1;
+    }
+  }
+  function maskScore(m){
+    // Simplified: penalty for runs of 5+ same color
+    let s=0;const n=m.length;
+    for(let y=0;y<n;y++){let run=1;for(let x=1;x<n;x++){if(m[y][x].v===m[y][x-1].v){run++;if(run===5)s+=3;else if(run>5)s++}else run=1}}
+    for(let x=0;x<n;x++){let run=1;for(let y=1;y<n;y++){if(m[y][x].v===m[y-1][x].v){run++;if(run===5)s+=3;else if(run>5)s++}else run=1}}
+    return s;
+  }
+  function buildMatrix(version,bytes){
+    const n=size(version);
+    const m=[];for(let i=0;i<n;i++){m.push(new Array(n).fill(null))}
+    placeFinder(m,0,0);placeFinder(m,n-7,0);placeFinder(m,0,n-7);
+    placeAlignment(m,version);
+    placeTiming(m);
+    // Reserve format areas
+    for(let i=0;i<9;i++){if(!m[8][i])m[8][i]={v:0,r:1};if(!m[i][8])m[i][8]={v:0,r:1}}
+    for(let i=0;i<8;i++){if(!m[8][n-1-i])m[8][n-1-i]={v:0,r:1};if(!m[n-1-i][8])m[n-1-i][8]={v:0,r:1}}
+    m[n-8][8]={v:1,r:1};
+    placeData(m,bytes);
+    // Try masks, pick best
+    let best={s:Infinity,id:0,m:null};
+    for(let mi=0;mi<8;mi++){
+      const copy=m.map(row=>row.map(c=>c?{v:c.v,r:c.r}:null));
+      applyMask(copy,mi);placeFormat(copy,mi);
+      const sc=maskScore(copy);
+      if(sc<best.s){best={s:sc,id:mi,m:copy}}
+    }
+    return best.m;
+  }
+  function encode(text){
+    const bytes=Array.from(new TextEncoder().encode(text));
+    const v=pickVersion(bytes.length);
+    const data=buildBits(bytes,v);
+    const final=interleave(data,v);
+    return buildMatrix(v,final);
+  }
+  return{encode};
+})();
+function renderQR(canvasId,text){
+  const cv=document.getElementById(canvasId);if(!cv||!cv.getContext)return;
+  let mat;try{mat=QR.encode(text)}catch(_){
+    const ctx=cv.getContext('2d');cv.width=200;cv.height=200;ctx.fillStyle='#000';ctx.font='12px sans-serif';ctx.fillText('代码太长',20,100);return;
+  }
+  const n=mat.length,scale=Math.max(4,Math.floor(220/n)),quiet=4*scale,W=n*scale+quiet*2;
+  cv.width=W;cv.height=W;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,W);
+  ctx.fillStyle='#000';
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+    if(mat[y][x]&&mat[y][x].v)ctx.fillRect(quiet+x*scale,quiet+y*scale,scale,scale);
+  }
+}
+
+// ===== Fireworks (meetup day) =====
+let fwRaf=null,fwParticles=[],fwLastBurst=0;
+function startFireworks(){
+  if(fireworksStarted||prefersReducedMotion)return;
+  const cv=document.getElementById('fwCanvas');
+  if(!cv||!cv.getContext)return;
+  const ctx=cv.getContext('2d');
+  if(!ctx)return;
+  fireworksStarted=true;
+  cv.classList.add('show');
+  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  fwParticles=[];fwLastBurst=0;
+  function burst(x,y,hue){
+    const n=40+Math.floor(Math.random()*30);
+    for(let i=0;i<n;i++){
+      const a=(i/n)*Math.PI*2+(Math.random()-0.5)*0.3;
+      const sp=2+Math.random()*4;
+      fwParticles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,hue,sz:1.5+Math.random()*1.5});
+    }
+  }
+  function tick(ts){
+    ctx.fillStyle='rgba(15,12,41,0.18)';
+    ctx.fillRect(0,0,cv.width,cv.height);
+    if(ts-fwLastBurst>900+Math.random()*800){
+      const x=cv.width*(0.15+Math.random()*0.7);
+      const y=cv.height*(0.15+Math.random()*0.4);
+      const hue=[320,280,40,200,350][Math.floor(Math.random()*5)];
+      burst(x,y,hue);fwLastBurst=ts;
+    }
+    fwParticles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.vy+=0.04;p.vx*=0.99;p.vy*=0.99;p.life-=0.012;
+      if(p.life>0){
+        ctx.beginPath();ctx.arc(p.x,p.y,p.sz,0,Math.PI*2);
+        ctx.fillStyle='hsla('+p.hue+',90%,'+(50+p.life*30)+'%,'+p.life+')';
+        ctx.fill();
+      }
+    });
+    fwParticles=fwParticles.filter(p=>p.life>0&&p.y<cv.height+50);
+    fwRaf=requestAnimationFrame(tick);
+  }
+  fwRaf=requestAnimationFrame(tick);
+}
+function stopFireworks(){
+  if(!fireworksStarted)return;
+  const cv=document.getElementById('fwCanvas');if(cv)cv.classList.remove('show');
+  if(fwRaf)cancelAnimationFrame(fwRaf);fwRaf=null;fwParticles=[];fireworksStarted=false;
+}
+
+// ===== Voice memos (IndexedDB for blobs) =====
+const VOICE_DB_NAME='loveapp-voice',VOICE_STORE='memos';
+function voiceDB(){
+  return new Promise((res,rej)=>{
+    if(!('indexedDB' in window)){rej(new Error('no idb'));return}
+    const req=indexedDB.open(VOICE_DB_NAME,1);
+    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(VOICE_STORE))db.createObjectStore(VOICE_STORE,{keyPath:'id'})};
+    req.onsuccess=()=>res(req.result);
+    req.onerror=()=>rej(req.error);
+  });
+}
+async function voiceList(){
+  try{
+    const db=await voiceDB();
+    return new Promise(res=>{
+      const tx=db.transaction(VOICE_STORE,'readonly');
+      const store=tx.objectStore(VOICE_STORE);
+      const req=store.getAll();
+      req.onsuccess=()=>res((req.result||[]).sort((a,b)=>b.ts-a.ts));
+      req.onerror=()=>res([]);
+    });
+  }catch(_){return[]}
+}
+async function voiceSave(item){
+  const db=await voiceDB();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(VOICE_STORE,'readwrite');
+    tx.objectStore(VOICE_STORE).put(item);
+    tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);
+  });
+}
+async function voiceDelete(id){
+  const db=await voiceDB();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(VOICE_STORE,'readwrite');
+    tx.objectStore(VOICE_STORE).delete(id);
+    tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);
+  });
+}
+
+let mediaRec=null,mediaChunks=[],recStart=0,recTimer=null,playingAudio=null,playingId=null;
+async function startRecording(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    showToast('这个设备不支持录音 😕',true);return false;
+  }
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    // Pick supported mime: webm/opus is widely supported, mp4 on iOS Safari
+    let mime='';
+    if(window.MediaRecorder){
+      const candidates=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
+      for(const c of candidates){if(MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(c)){mime=c;break}}
+    }else{showToast('这个设备不支持录音 😕',true);stream.getTracks().forEach(t=>t.stop());return false}
+    mediaChunks=[];
+    mediaRec=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
+    mediaRec.ondataavailable=e=>{if(e.data&&e.data.size)mediaChunks.push(e.data)};
+    mediaRec.onstop=async()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      const dur=Math.round((Date.now()-recStart)/1000);
+      if(dur<1){showToast('太短啦，再试试 👍',true);renderVoices();return}
+      const blob=new Blob(mediaChunks,{type:mime||'audio/webm'});
+      // Sample audio to render waveform (peak per ~bucket)
+      const peaks=await samplePeaks(blob,32);
+      try{
+        const voiceId=Date.now()+'_'+Math.random().toString(36).slice(2,7);
+        const voiceMeta={id:voiceId,ts:Date.now(),duration:dur,peaks,mime:blob.type};
+        await voiceSave({...voiceMeta,blob});
+        if(typeof syncPushVoiceMeta==='function')syncPushVoiceMeta(voiceMeta);
+        showToast('留言保存了 🎤');
+      }catch(e){showToast('保存失败 😕',true)}
+      renderVoices();
+    };
+    mediaRec.start();
+    recStart=Date.now();
+    document.getElementById('voiceRecBtn').classList.add('recording');
+    document.getElementById('voiceHint').textContent='松开保存 / 点一下取消';
+    if(recTimer)clearInterval(recTimer);
+    recTimer=setInterval(()=>{
+      const t=Math.floor((Date.now()-recStart)/1000);
+      const max=30;
+      document.getElementById('voiceTimer').textContent='● '+pad(Math.floor(t/60))+':'+pad(t%60);
+      if(t>=max){stopRecording(false)}
+    },200);
+    if(navigator.vibrate)try{navigator.vibrate(30)}catch(_){}
+    return true;
+  }catch(e){
+    if(e&&(e.name==='NotAllowedError'||e.name==='SecurityError'))showToast('麻烦在设置里允许麦克风 🎙️',true);
+    else showToast('录音失败 😕',true);
+    return false;
+  }
+}
+function stopRecording(cancel){
+  if(recTimer){clearInterval(recTimer);recTimer=null}
+  document.getElementById('voiceTimer').textContent='';
+  document.getElementById('voiceHint').textContent='按住录音，松开保存 · 最长 30 秒';
+  document.getElementById('voiceRecBtn').classList.remove('recording');
+  if(mediaRec&&mediaRec.state!=='inactive'){
+    if(cancel){mediaRec.ondataavailable=null;mediaRec.onstop=()=>{const s=mediaRec.stream;if(s)s.getTracks().forEach(t=>t.stop())}}
+    try{mediaRec.stop()}catch(_){}
+  }
+}
+async function samplePeaks(blob,buckets){
+  try{
+    const ac=new (window.AudioContext||window.webkitAudioContext)();
+    const buf=await blob.arrayBuffer();
+    const audioBuf=await ac.decodeAudioData(buf.slice(0));
+    const ch=audioBuf.getChannelData(0);
+    const step=Math.floor(ch.length/buckets);
+    const peaks=[];
+    for(let i=0;i<buckets;i++){
+      let max=0;
+      for(let j=0;j<step;j++){const v=Math.abs(ch[i*step+j]||0);if(v>max)max=v}
+      peaks.push(Math.min(1,max));
+    }
+    try{ac.close()}catch(_){}
+    return peaks;
+  }catch(_){
+    // Fallback: random-ish peaks
+    return Array.from({length:buckets},()=>0.3+Math.random()*0.5);
+  }
+}
+function formatVoiceMeta(ts,dur){
+  const d=new Date(ts);
+  const date=new Intl.DateTimeFormat('zh-CN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(d);
+  return date+' · '+pad(Math.floor(dur/60))+':'+pad(dur%60);
+}
+async function renderVoices(){
+  const list=document.getElementById('voiceList');if(!list)return;
+  const items=await voiceList();
+  if(!items.length){list.innerHTML='<div class="voice-empty">还没有语音留言，试着录一条吧 🎤</div>';return}
+  list.innerHTML=items.map(it=>{
+    const peaks=(it.peaks||[]).map(p=>Math.max(0.1,p));
+    const bars=peaks.map((p,i)=>'<div class="bar" data-i="'+i+'" style="height:'+(p*100)+'%"></div>').join('');
+    return '<div class="voice-item" data-id="'+it.id+'">'+
+      '<button class="voice-play-btn" aria-label="播放">▶</button>'+
+      '<div class="voice-info"><div class="voice-meta">'+formatVoiceMeta(it.ts,it.duration)+'</div><div class="voice-wave">'+bars+'</div></div>'+
+      '<button class="voice-del" aria-label="删除">✕</button>'+
+      '</div>';
+  }).join('');
+  list.querySelectorAll('.voice-item').forEach(item=>{
+    const id=item.dataset.id;
+    item.querySelector('.voice-play-btn').addEventListener('click',()=>togglePlay(id,item));
+    item.querySelector('.voice-del').addEventListener('click',async()=>{
+      if(!confirm('删掉这条留言吗？'))return;
+      if(playingId===id)stopPlayback();
+      await voiceDelete(id);
+      if(typeof syncDeleteVoice==='function')syncDeleteVoice(id);
+      renderVoices();
+    });
+  });
+}
+async function togglePlay(id,itemEl){
+  if(playingId===id){stopPlayback();return}
+  stopPlayback();
+  const items=await voiceList();const item=items.find(x=>x.id===id);if(!item)return;
+  const url=URL.createObjectURL(item.blob);
+  playingAudio=new Audio(url);playingId=id;
+  itemEl.classList.add('playing');
+  itemEl.querySelector('.voice-play-btn').textContent='⏸';
+  itemEl.querySelector('.voice-play-btn').classList.add('playing');
+  // Animate bars during playback
+  const bars=itemEl.querySelectorAll('.voice-wave .bar');
+  let progRaf=null;
+  function step(){
+    if(!playingAudio)return;
+    const pct=playingAudio.duration?playingAudio.currentTime/playingAudio.duration:0;
+    const cutoff=Math.floor(pct*bars.length);
+    bars.forEach((b,i)=>b.classList.toggle('active',i<cutoff));
+    progRaf=requestAnimationFrame(step);
+  }
+  playingAudio.addEventListener('ended',()=>{stopPlayback();URL.revokeObjectURL(url)});
+  playingAudio.addEventListener('error',()=>{showToast('播放失败 😕',true);stopPlayback();URL.revokeObjectURL(url)});
+  try{await playingAudio.play();progRaf=requestAnimationFrame(step)}catch(e){showToast('播放失败 😕',true);stopPlayback();URL.revokeObjectURL(url);return}
+  playingAudio._cleanup=()=>{if(progRaf)cancelAnimationFrame(progRaf);bars.forEach(b=>b.classList.remove('active'));itemEl.classList.remove('playing');const btn=itemEl.querySelector('.voice-play-btn');if(btn){btn.textContent='▶';btn.classList.remove('playing')}};
+}
+function stopPlayback(){
+  if(playingAudio){
+    try{playingAudio.pause()}catch(_){}
+    if(playingAudio._cleanup)playingAudio._cleanup();
+    playingAudio=null;playingId=null;
+  }
+}
+renderVoices();
+
+// ===== Onboarding (first-run) =====
+function maybeShowOnboarding(){
+  if(localStorage.getItem('onboarded')==='1')return;
+  // Treat "untouched" as: anniv at default and tz still defaults
+  const isFresh=cfg.anniv==='2024-01-01'&&!localStorage.getItem('anniv');
+  if(!isFresh)return;
+  const ov=document.getElementById('onboardOverlay');
+  if(!ov)return;
+  setTimeout(()=>ov.classList.add('show'),400);
+  document.getElementById('onboardBtn').addEventListener('click',()=>{
+    ov.classList.remove('show');
+    localStorage.setItem('onboarded','1');
+    setTimeout(()=>openDrawer(),300);
+  },{once:true});
+}
+
+// ===== Date helpers (timezone-safe) =====
+// Parse 'YYYY-MM-DD' as local-midnight to avoid UTC offset bugs
+function parseLocalDate(s){
+  if(!s||!/^\d{4}-\d{2}-\d{2}$/.test(s))return null;
+  const [y,m,d]=s.split('-').map(Number);
+  return new Date(y,m-1,d,0,0,0,0);
+}
+function startOfLocalDay(date){
+  return new Date(date.getFullYear(),date.getMonth(),date.getDate(),0,0,0,0);
+}
+
+// ===== Days Together =====
+function updateDays(){
+  const anniv=parseLocalDate(cfg.anniv);
+  if(!anniv){document.getElementById('daysNum').textContent=0;document.getElementById('daysSince').textContent='';renderMilestone(0);return}
+  const today=startOfLocalDay(new Date());
+  const diff=Math.floor((today-anniv)/(1000*60*60*24));
+  document.getElementById('daysNum').textContent=diff>0?diff:0;
+  document.getElementById('daysSince').textContent='自 '+cfg.anniv+' 起';
+  renderMilestone(diff);
+}
+updateDays();
+
+// ===== Clocks =====
+function pad(n){return String(n).padStart(2,'0')}
+function formatTime(tz){
+  return new Intl.DateTimeFormat('zh-CN',{timeZone:tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date());
+}
+function formatDate(tz){
+  return new Intl.DateTimeFormat('zh-CN',{timeZone:tz,month:'long',day:'numeric',weekday:'short'}).format(new Date());
+}
+function updateClocks(){
+  document.getElementById('clockA').textContent=formatTime(cfg.tzA);
+  document.getElementById('dateA').textContent=formatDate(cfg.tzA);
+  document.getElementById('clockB').textContent=formatTime(cfg.tzB);
+  document.getElementById('dateB').textContent=formatDate(cfg.tzB);
+}
+updateClocks();
+
+// ===== Countdown =====
+let countdownEmpty=false,countdownMet=false;
+let currentCdStage='';
+let fireworksStarted=false;
+function renderCountdownGrid(){
+  document.getElementById('countdownContent').innerHTML='<div class="countdown-grid"><div class="cd-item"><div class="cd-num" id="cdDays">0</div><div class="cd-unit">天</div></div><div class="cd-item"><div class="cd-num" id="cdHours">00</div><div class="cd-unit">时</div></div><div class="cd-item"><div class="cd-num" id="cdMins">00</div><div class="cd-unit">分</div></div><div class="cd-item"><div class="cd-num" id="cdSecs">00</div><div class="cd-unit">秒</div></div></div>';
+  countdownEmpty=false;countdownMet=false;
+}
+function setCdStage(stage,msg){
+  const card=document.getElementById('countdownCard');if(!card)return;
+  if(currentCdStage!==stage){
+    card.classList.remove('cd-stage-30','cd-stage-7','cd-stage-1','cd-stage-today');
+    if(stage)card.classList.add('cd-stage-'+stage);
+    currentCdStage=stage;
+  }
+  // Always update message (so within-stage countdown text refreshes)
+  const msgEl=document.getElementById('cdStageMsg');if(msgEl&&msgEl.textContent!==(msg||''))msgEl.textContent=msg||'';
+}
+function renderMeetupPlace(){
+  const el=document.getElementById('cdPlace');if(!el)return;
+  el.textContent=cfg.meetupPlace?'📍 '+cfg.meetupPlace:'';
+}
+function updateCountdown(){
+  const placeEl=document.getElementById('cdPlace');
+  if(!cfg.meetup){
+    if(!countdownEmpty){document.getElementById('countdownContent').innerHTML='<div style="color:rgba(255,255,255,0.4);font-size:13px">在设置里填写下次见面日期</div>';countdownEmpty=true;countdownMet=false;}
+    setCdStage('','');stopFireworks();if(placeEl)placeEl.textContent='';
+    return;
+  }
+  const meet=parseLocalDate(cfg.meetup);
+  if(!meet){return}
+  const now=new Date();
+  const diff=meet-now;
+  // "Met" if today >= meetup date (allow whole meetup day)
+  const today=startOfLocalDay(now);
+  const isToday=meet.getTime()===today.getTime();
+  if(diff<=0&&!isToday){
+    if(!countdownMet){document.getElementById('countdownContent').innerHTML='<div class="countdown-met">已经见面啦 🎉</div>';countdownMet=true;countdownEmpty=false;}
+    setCdStage('','');stopFireworks();renderMeetupPlace();
+    return;
+  }
+  if(countdownEmpty||countdownMet||!document.getElementById('cdDays'))renderCountdownGrid();
+  const d=Math.floor(Math.max(diff,0)/(1000*60*60*24));
+  const h=Math.floor((Math.max(diff,0)%(1000*60*60*24))/(1000*60*60));
+  const m=Math.floor((Math.max(diff,0)%(1000*60*60))/(1000*60));
+  const s=Math.floor((Math.max(diff,0)%60000)/1000);
+  document.getElementById('cdDays').textContent=d;
+  document.getElementById('cdHours').textContent=pad(h);
+  document.getElementById('cdMins').textContent=pad(m);
+  document.getElementById('cdSecs').textContent=pad(s);
+  // Stage based on days remaining (using local-day diff, not raw ms)
+  const dayDiff=Math.round((meet-today)/(86400000));
+  if(dayDiff===0||isToday){
+    setCdStage('today','🎆 今天就能见面了！');
+    startFireworks();
+  }else if(dayDiff===1){
+    setCdStage('1','💕 明天就见面啦，快去准备吧');
+    stopFireworks();
+  }else if(dayDiff<=7){
+    setCdStage('7','✈️ 快要见面啦！倒数 '+dayDiff+' 天 💖');
+    stopFireworks();
+  }else if(dayDiff<=30){
+    setCdStage('30','✨ 不到一个月就能见面了');
+    stopFireworks();
+  }else{
+    setCdStage('','');
+    stopFireworks();
+  }
+  renderMeetupPlace();
+}
+updateCountdown();
+
+// Pause timers when tab hidden to save battery
+let tickTimer=null,skyTimer=null;
+function startTimers(){
+  if(tickTimer)return;
+  tickTimer=setInterval(()=>{updateClocks();updateCountdown();},1000);
+  skyTimer=setInterval(updateSky,60000);
+}
+function stopTimers(){
+  if(tickTimer){clearInterval(tickTimer);tickTimer=null}
+  if(skyTimer){clearInterval(skyTimer);skyTimer=null}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){stopTimers()}else{updateClocks();updateCountdown();updateSky();startTimers();}
+});
+startTimers();
+updateSky();
+updateWeather();
+startSeason();
+maybeShowOnboarding();
+// Refresh weather hourly
+setInterval(updateWeather,60*60*1000);
+
+// Heart click handler
+document.getElementById('heartBtn').addEventListener('click',e=>{
+  const rect=e.currentTarget.getBoundingClientRect();
+  spawnHeartParticles(rect.left+rect.width/2,rect.top+rect.height/2);
+});
+
+// Voice record button: press-and-hold on mobile, click toggle on desktop
+(function(){
+  const btn=document.getElementById('voiceRecBtn');if(!btn)return;
+  let pressActive=false,startedAt=0;
+  // Touch: press & hold pattern
+  btn.addEventListener('touchstart',async e=>{e.preventDefault();pressActive=true;startedAt=Date.now();const ok=await startRecording();if(!ok)pressActive=false},{passive:false});
+  btn.addEventListener('touchend',e=>{e.preventDefault();if(!pressActive)return;pressActive=false;const held=Date.now()-startedAt;stopRecording(held<400)});
+  btn.addEventListener('touchcancel',()=>{if(pressActive){pressActive=false;stopRecording(true)}});
+  // Mouse: click to toggle
+  btn.addEventListener('mousedown',async e=>{
+    if(e.button!==0)return;
+    if(mediaRec&&mediaRec.state==='recording'){stopRecording(false);return}
+    await startRecording();
+  });
+})();
+
+// Memory modal handlers
+document.getElementById('memAddBtn').addEventListener('click',openMemModal);
+document.getElementById('memCancelBtn').addEventListener('click',closeMemModal);
+document.getElementById('memModalOverlay').addEventListener('click',closeMemModal);
+document.getElementById('memSaveBtn').addEventListener('click',saveMemFromModal);
+
+// Sync handlers
+document.getElementById('shareBtn').addEventListener('click',()=>{closeDrawer();setTimeout(openShareModal,300)});
+document.getElementById('importBtn').addEventListener('click',()=>{closeDrawer();setTimeout(openImportModal,300)});
+document.getElementById('codeCloseBtn').addEventListener('click',closeCodeModal);
+document.getElementById('codeModalOverlay').addEventListener('click',closeCodeModal);
+// Backup file handlers
+document.getElementById('exportFileBtn').addEventListener('click',()=>{closeDrawer();setTimeout(exportBackupFile,300)});
+document.getElementById('importFileBtn').addEventListener('click',()=>{document.getElementById('importFileInput').click()});
+document.getElementById('importFileInput').addEventListener('change',e=>{
+  const f=e.target.files&&e.target.files[0];
+  if(f){closeDrawer();setTimeout(()=>importBackupFile(f),300)}
+  e.target.value=''; // reset for re-selecting same file
+});
+
+// ESC closes modals
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if(document.getElementById('memModal').classList.contains('open'))closeMemModal();
+  else if(document.getElementById('codeModal').classList.contains('open'))closeCodeModal();
+});
+
+// ===== Map (Canvas) =====
+function latlngToXY(lat,lng,W,H){
+  return[(lng+180)/360*W,(90-lat)/180*H];
+}
+function haversine(lat1,lng1,lat2,lng2){
+  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return Math.round(R*2*Math.asin(Math.sqrt(a)));
+}
+
+// Simplified world land polygons [lng,lat pairs]
+const LAND=[
+  // North America
+  [-168,72,-140,72,-100,78,-80,72,-60,50,-55,47,-65,44,-70,42,-75,35,-80,25,-90,20,-105,20,-120,30,-125,48,-130,55,-140,60,-155,60,-165,65],
+  // Greenland
+  [-45,83,-20,83,-18,76,-25,70,-45,70,-55,76],
+  // South America
+  [-80,12,-60,12,-50,0,-35,-10,-35,-25,-55,-35,-65,-55,-70,-55,-75,-40,-80,-20,-80,0],
+  // Europe
+  [-10,36,0,36,10,44,20,44,30,50,30,60,20,65,10,60,0,50,-5,44],
+  // Scandinavia
+  [5,58,10,58,20,70,28,72,30,68,25,60,15,56,8,56],
+  // Africa
+  [-18,16,0,16,10,10,20,5,40,5,50,12,45,25,35,30,30,35,20,38,10,38,0,30,-10,20,-18,16],
+  // Asia (simplified)
+  [30,42,40,38,50,30,60,22,70,20,80,10,100,5,110,0,120,5,130,10,140,40,140,50,130,55,120,55,110,50,100,45,90,45,80,50,70,55,60,55,50,50,40,50,30,50],
+  // Japan
+  [130,32,132,34,136,36,140,40,142,44,140,44,136,38,132,34],
+  // Australia
+  [114,-22,120,-20,130,-12,140,-12,150,-22,152,-28,148,-38,140,-38,130,-32,120,-30,114,-26],
+  // New Zealand
+  [166,-46,170,-44,174,-40,178,-38,176,-36,172,-40,168,-44],
+];
+
+// Compute viewport that frames both cities, picking the shorter longitudinal arc.
+// Returns {minLng, maxLng, minLat, maxLat, wrap} where wrap=true means we crossed the antimeridian.
+function computeViewport(latA,lngA,latB,lngB){
+  // Decide whether the short path wraps across ±180
+  let dLng=lngB-lngA;
+  let wrap=false;
+  if(Math.abs(dLng)>180){
+    wrap=true;
+    // Bring the smaller-longitude one across +360 so they're adjacent
+    if(lngA<lngB)lngA+=360;
+    else lngB+=360;
+  }
+  const minLng=Math.min(lngA,lngB);
+  const maxLng=Math.max(lngA,lngB);
+  const minLat=Math.min(latA,latB);
+  const maxLat=Math.max(latA,latB);
+  return{minLng,maxLng,minLat,maxLat,wrap};
+}
+
+function drawMap(){
+  const canvas=document.getElementById('mapCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  if(!ctx)return;
+
+  // DPI-aware sizing
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const cssW=canvas.clientWidth||800;
+  const cssH=Math.round(cssW*0.5); // 2:1 aspect
+  const W=cssW*dpr,H=cssH*dpr;
+  canvas.width=W;canvas.height=H;
+  canvas.style.height=cssH+'px';
+
+  // Trigger async geocoding for any unknown city; redraw once when results arrive.
+  let needsRedraw=false;
+  const coordA=resolveCoord(cfg.cityA,cfg.tzA,c=>{needsRedraw=true;setTimeout(drawMap,0)});
+  const coordB=resolveCoord(cfg.cityB,cfg.tzB,c=>{needsRedraw=true;setTimeout(drawMap,0)});
+  const sameSpot=Math.abs(coordA[0]-coordB[0])<0.05&&Math.abs(coordA[1]-coordB[1])<0.05;
+
+  // Compute auto-frame viewport
+  const vp=computeViewport(coordA[0],coordA[1],coordB[0],coordB[1]);
+  // Padding: 25% of span, with min/max
+  const lngSpan=Math.max(vp.maxLng-vp.minLng,1);
+  const latSpan=Math.max(vp.maxLat-vp.minLat,1);
+  const lngPad=Math.max(lngSpan*0.4,15);
+  const latPad=Math.max(latSpan*0.4,12);
+  let viewMinLng=vp.minLng-lngPad,viewMaxLng=vp.maxLng+lngPad;
+  let viewMinLat=Math.max(-85,vp.minLat-latPad),viewMaxLat=Math.min(85,vp.maxLat+latPad);
+  // Match aspect ratio of canvas (2:1) so map isn't stretched
+  const targetRatio=2; // W/H of geographic span
+  const curLngSpan=viewMaxLng-viewMinLng;
+  const curLatSpan=viewMaxLat-viewMinLat;
+  if(curLngSpan/curLatSpan<targetRatio){
+    // Need wider lng span
+    const need=curLatSpan*targetRatio-curLngSpan;
+    viewMinLng-=need/2;viewMaxLng+=need/2;
+  }else{
+    const need=curLngSpan/targetRatio-curLatSpan;
+    viewMinLat=Math.max(-85,viewMinLat-need/2);
+    viewMaxLat=Math.min(85,viewMaxLat+need/2);
+  }
+  // Clamp lng span to <=360
+  if(viewMaxLng-viewMinLng>360){const c=(viewMinLng+viewMaxLng)/2;viewMinLng=c-180;viewMaxLng=c+180;}
+
+  // Project lat/lng → canvas, handling antimeridian wrap.
+  function project(lat,lng){
+    let l=lng;
+    // If our viewport crosses 180, normalize lng into [viewMinLng, viewMaxLng]
+    if(viewMaxLng>180&&l<viewMinLng)l+=360;
+    if(viewMinLng<-180&&l>viewMaxLng)l-=360;
+    const x=(l-viewMinLng)/(viewMaxLng-viewMinLng)*W;
+    const y=(viewMaxLat-lat)/(viewMaxLat-viewMinLat)*H;
+    return[x,y];
+  }
+
+  // Background
+  ctx.fillStyle='rgba(10,8,30,0.85)';
+  ctx.fillRect(0,0,W,H);
+
+  // Grid (adaptive step based on span)
+  const gridStep=lngSpan>120?30:(lngSpan>40?15:5);
+  ctx.strokeStyle='rgba(255,255,255,0.05)';
+  ctx.lineWidth=0.5*dpr;
+  for(let lng=Math.ceil(viewMinLng/gridStep)*gridStep;lng<=viewMaxLng;lng+=gridStep){
+    const [x]=project(0,lng);
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  }
+  for(let lat=Math.ceil(viewMinLat/gridStep)*gridStep;lat<=viewMaxLat;lat+=gridStep){
+    const [,y]=project(lat,0);
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+  }
+
+  // Land
+  ctx.fillStyle='rgba(255,255,255,0.12)';
+  ctx.strokeStyle='rgba(255,255,255,0.25)';
+  ctx.lineWidth=1*dpr;
+  LAND.forEach(pts=>{
+    // Draw twice if viewport wraps, once shifted +360, once -360, so polygons crossing the seam still appear
+    const offsets=(viewMaxLng>180||viewMinLng<-180)?[0,360,-360]:[0];
+    offsets.forEach(off=>{
+      ctx.beginPath();
+      for(let i=0;i<pts.length;i+=2){
+        const [x,y]=project(pts[i+1],pts[i]+off);
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.closePath();ctx.fill();ctx.stroke();
+    });
+  });
+
+  const [x1,y1]=project(coordA[0],coordA[1]);
+  const [x2,y2]=project(coordB[0],coordB[1]);
+
+  if(!sameSpot){
+    // Arc height adapts to distance (in screen px)
+    const screenDist=Math.hypot(x2-x1,y2-y1);
+    const arcLift=Math.min(Math.max(screenDist*0.18,30*dpr),H*0.4);
+    const mx=(x1+x2)/2,my=Math.min(y1,y2)-arcLift;
+
+    // Arc glow
+    ctx.save();
+    ctx.filter='blur(4px)';
+    ctx.strokeStyle='rgba(192,132,252,0.6)';
+    ctx.lineWidth=6*dpr;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(mx,my,x2,y2);ctx.stroke();
+    ctx.restore();
+
+    const grad=ctx.createLinearGradient(x1,y1,x2,y2);
+    grad.addColorStop(0,'#c084fc');grad.addColorStop(1,'#f472b6');
+    ctx.strokeStyle=grad;ctx.lineWidth=2.5*dpr;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(mx,my,x2,y2);ctx.stroke();
+  }
+
+  // Dots with glow
+  const dotPairs=sameSpot?[[x1,y1,'#f0abfc']]:[[x1,y1,'#c084fc'],[x2,y2,'#f472b6']];
+  dotPairs.forEach(([x,y,c])=>{
+    ctx.save();
+    ctx.filter='blur(6px)';
+    ctx.fillStyle=c;
+    ctx.beginPath();ctx.arc(x,y,10*dpr,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+    ctx.fillStyle=c;
+    ctx.beginPath();ctx.arc(x,y,6*dpr,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=1.5*dpr;
+    ctx.beginPath();ctx.arc(x,y,10*dpr,0,Math.PI*2);ctx.stroke();
+  });
+
+  // Labels with edge clamping
+  ctx.font='bold '+(13*dpr)+'px sans-serif';
+  ctx.textAlign='center';
+  const labels=sameSpot
+    ?[[x1,y1,(cfg.cityA===cfg.cityB?cfg.cityA:cfg.cityA+' · '+cfg.cityB),'#f0abfc']]
+    :[[x1,y1,cfg.cityA,'#e0aaff'],[x2,y2,cfg.cityB,'#ffb3d1']];
+  labels.forEach(([x,y,name,c])=>{
+    const tw=ctx.measureText(name).width;
+    const padX=4*dpr,h=18*dpr;
+    let bx=x-tw/2-padX;
+    if(bx<2)bx=2;
+    if(bx+tw+padX*2>W-2)bx=W-2-tw-padX*2;
+    let by=y-30*dpr;
+    if(by<2)by=y+14*dpr; // flip below dot if too close to top edge
+    ctx.fillStyle='rgba(0,0,0,0.75)';
+    ctx.fillRect(bx,by,tw+padX*2,h);
+    ctx.fillStyle=c;
+    ctx.fillText(name,bx+tw/2+padX,by+13*dpr);
+  });
+
+  const dist=haversine(coordA[0],coordA[1],coordB[0],coordB[1]);
+  const distEl=document.getElementById('distLabel');
+  if(sameSpot)distEl.textContent='💕 你们在同一个地方';
+  else if(dist<50)distEl.textContent='只隔着 '+dist+' 公里';
+  else distEl.textContent='直线距离约 '+dist.toLocaleString()+' 公里';
+}
+drawMap();
+// Redraw on resize so DPI/aspect stays correct
+let _mapResizeTimer=null;
+window.addEventListener('resize',()=>{clearTimeout(_mapResizeTimer);_mapResizeTimer=setTimeout(drawMap,150);});
+
+// ===== Settings Drawer =====
+const fab=document.getElementById('fabBtn');
+const overlay=document.getElementById('overlay');
+const drawer=document.getElementById('drawer');
+function showToast(msg,isError){
+  const t=document.getElementById('saveToast');
+  t.textContent=msg||'已保存 💕';
+  t.classList.toggle('error',!!isError);
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t=setTimeout(()=>t.classList.remove('show'),2200);
+}
+function openDrawer(){
+  const s=loadSettings();
+  document.getElementById('sNameA').value=s.nameA;
+  document.getElementById('sNameB').value=s.nameB;
+  document.getElementById('sAnniv').value=s.anniv;
+  document.getElementById('sCityA').value=s.cityA;
+  document.getElementById('sTzA').value=s.tzA;
+  document.getElementById('sCityB').value=s.cityB;
+  document.getElementById('sTzB').value=s.tzB;
+  document.getElementById('sMeetup').value=s.meetup;
+  document.getElementById('sMeetupPlace').value=s.meetupPlace||'';
+  document.getElementById('sRoom').value=s.room||'';
+  overlay.classList.add('open');drawer.classList.add('open');
+}
+function closeDrawer(){overlay.classList.remove('open');drawer.classList.remove('open')}
+fab.addEventListener('click',openDrawer);
+overlay.addEventListener('click',closeDrawer);
+document.getElementById('cancelBtn').addEventListener('click',closeDrawer);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawer.classList.contains('open'))closeDrawer()});
+document.getElementById('saveBtn').addEventListener('click',()=>{
+  const meetupVal=document.getElementById('sMeetup').value;
+  const annivVal=document.getElementById('sAnniv').value||'2024-01-01';
+  // Validate anniversary not in future
+  const annivDate=parseLocalDate(annivVal);
+  if(annivDate&&annivDate>startOfLocalDay(new Date())){showToast('在一起的日期不能是未来 🤔',true);return}
+  // Validate meetup not in past (allow today)
+  if(meetupVal){
+    const meetDate=parseLocalDate(meetupVal);
+    if(meetDate&&meetDate<startOfLocalDay(new Date())){showToast('见面日期已经过去啦 ✈️',true);return}
+  }
+  cfg={
+    nameA:document.getElementById('sNameA').value.trim()||'你',
+    nameB:document.getElementById('sNameB').value.trim()||'TA',
+    anniv:annivVal,
+    cityA:document.getElementById('sCityA').value.trim()||'上海',
+    tzA:document.getElementById('sTzA').value,
+    cityB:document.getElementById('sCityB').value.trim()||'纽约',
+    tzB:document.getElementById('sTzB').value,
+    meetup:meetupVal,
+    meetupPlace:document.getElementById('sMeetupPlace').value.trim(),
+    room:document.getElementById('sRoom').value.trim().toLowerCase()
+  };
+  saveSettings(cfg);
+  // Push settings to server
+  if(typeof syncPushSettings==='function')syncPushSettings(cfg);
+  // Reconnect WS if room changed
+  if(typeof _ws!=='undefined'&&_ws){_ws.close();_ws=null}
+  if(cfg.room&&typeof wsConnect==='function'){wsConnect();wsStartPing()}
+  applySettings();
+  updateDays();
+  updateClocks();
+  updateCountdown();
+  updateSky();
+  drawMap();
+  updateWeather();
+  startSeason();
+  renderMeetupPlace();
+  closeDrawer();
+  showToast();
+});
+
+// ===== PWA Service Worker =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+// Load cloud sync module and init
+(function(){
+  const s=document.createElement('script');
+  s.src='./sync.js';
+  s.onload=function(){
+    if(typeof syncInit==='function'){
+      // Small delay to ensure all DOM + state is ready
+      setTimeout(syncInit,1000);
+      // Also pull data on first visible
+      document.addEventListener('visibilitychange',function handler(){
+        if(!document.hidden&&typeof syncPull==='function'){
+          syncPull();
+          document.removeEventListener('visibilitychange',handler);
+        }
+      });
+    }
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

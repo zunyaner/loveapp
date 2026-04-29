@@ -7,9 +7,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="小窝">
-<meta name="theme-color" content="#c084fc">
+<meta name="theme-color" content="#0f0c29" id="themeColorMeta">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-192.png">
 <title>我们的小窝</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
@@ -637,6 +639,12 @@ function updateSky(){
   document.body.className=cls;
   const starsCanvas=document.getElementById('stars');
   starsCanvas.style.opacity=(cls==='sky-night'||cls==='sky-dawn')?'1':'0.2';
+  // Update theme-color for PWA status bar
+  const themeMeta=document.getElementById('themeColorMeta');
+  if(themeMeta){
+    const colors={'sky-dawn':'#6b21a8','sky-morning':'#0ea5e9','sky-day':'#0284c7','sky-dusk':'#1e1b4b','sky-night':'#0f0c29'};
+    themeMeta.content=colors[cls]||'#0f0c29';
+  }
 }
 
 // ===== Config =====

@@ -614,6 +614,16 @@ select.setting-input option{background:#1a1535;color:#fff}
   </div>
 </div>
 
+<!-- PWA Install Prompt -->
+<div class="onboard-overlay" id="installOverlay">
+  <div class="onboard">
+    <div class="onboard-emoji">📱</div>
+    <div class="onboard-title">装到主屏幕</div>
+    <div class="onboard-text" id="installText"></div>
+    <button class="onboard-btn" id="installDismissBtn">我知道了</button>
+  </div>
+</div>
+
 <script>
 // ===== Stars =====
 (function(){
@@ -1645,8 +1655,67 @@ function maybeShowOnboarding(){
     ov.classList.remove('show');
     localStorage.setItem('onboarded','1');
     setTimeout(()=>openDrawer(),300);
+    // After onboarding done, show install prompt after a delay
+    setTimeout(maybeShowInstallPrompt, 2000);
   },{once:true});
 }
+
+// ===== PWA Install Prompt =====
+let _deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+});
+
+function maybeShowInstallPrompt(){
+  // Don't show if already dismissed or installed
+  if(localStorage.getItem('installDismissed')==='1') return;
+  if(window.matchMedia('(display-mode: standalone)').matches) return; // already installed
+
+  const overlay = document.getElementById('installOverlay');
+  const textEl = document.getElementById('installText');
+  if(!overlay || !textEl) return;
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isAndroid = /Android/.test(navigator.userAgent);
+
+  if(isIOS) {
+    textEl.innerHTML = '想把它装到主屏幕？<br><br>点击底部 <strong>分享按钮</strong> 📤 →<br>选择<strong>「添加到主屏幕」</strong><br><br>安装后打开更快，像原生 App 一样 💕';
+  } else if(isAndroid && _deferredInstallPrompt) {
+    textEl.innerHTML = '想把它装到主屏幕？<br><br>安装后打开更快，像原生 App 一样 💕';
+    document.getElementById('installDismissBtn').textContent = '📲 安装到主屏幕';
+    document.getElementById('installDismissBtn').onclick = () => {
+      _deferredInstallPrompt.prompt();
+      _deferredInstallPrompt.userChoice.then(result => {
+        overlay.classList.remove('show');
+        localStorage.setItem('installDismissed', '1');
+        _deferredInstallPrompt = null;
+      });
+    };
+  } else {
+    textEl.innerHTML = '想把它装到主屏幕？<br><br>在浏览器菜单中选择<br><strong>「添加到主屏幕」</strong> 或 <strong>「安装 App」</strong><br><br>安装后打开更快，像原生 App 一样 💕';
+  }
+
+  setTimeout(() => overlay.classList.add('show'), 500);
+}
+
+// Dismiss install prompt
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('installDismissBtn');
+  if(btn) {
+    btn.addEventListener('click', () => {
+      document.getElementById('installOverlay').classList.remove('show');
+      localStorage.setItem('installDismissed', '1');
+    });
+  }
+});
+
+// Show install prompt 5s after page load (if user has been here before)
+document.addEventListener('DOMContentLoaded', () => {
+  if(localStorage.getItem('onboarded')==='1' && !localStorage.getItem('installDismissed')){
+    setTimeout(maybeShowInstallPrompt, 5000);
+  }
+});
 
 // ===== Date helpers (timezone-safe) =====
 // Parse 'YYYY-MM-DD' as local-midnight to avoid UTC offset bugs

@@ -16,14 +16,15 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--purple:#c084fc;--pink:#f472b6;--glass:rgba(255,255,255,0.07);--border:rgba(255,255,255,0.12)}
-body{font-family:'Noto Sans SC',sans-serif;min-height:100vh;color:#fff;overflow-x:hidden;transition:background 3s ease}
+body{font-family:'Noto Sans SC',sans-serif;min-height:100vh;color:#fff;overflow-x:hidden;transition:background 3s ease;padding-top:env(safe-area-inset-top,0)}
+body::before{content:'';position:fixed;bottom:0;left:0;right:0;height:env(safe-area-inset-bottom,0);z-index:9999;pointer-events:none;background:transparent}
 body.sky-dawn{background:linear-gradient(180deg,#1a0533 0%,#6b21a8 40%,#f97316 80%,#fbbf24 100%)}
 body.sky-morning{background:linear-gradient(180deg,#0ea5e9 0%,#38bdf8 50%,#bae6fd 100%)}
 body.sky-day{background:linear-gradient(180deg,#0284c7 0%,#0ea5e9 40%,#7dd3fc 100%)}
 body.sky-dusk{background:linear-gradient(180deg,#1e1b4b 0%,#7c3aed 30%,#db2777 60%,#f97316 100%)}
 body.sky-night{background:linear-gradient(180deg,#0f0c29 0%,#302b63 50%,#24243e 100%)}
 canvas#stars{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;transition:opacity 2s}
-.app{position:relative;z-index:1;max-width:430px;margin:0 auto;padding:20px 16px 100px}
+.app{position:relative;z-index:1;max-width:430px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top,0)) 16px calc(100px + env(safe-area-inset-bottom,0))}
 
 .header{text-align:center;padding:24px 0 16px;display:flex;align-items:center;justify-content:center;gap:16px}
 .name{font-size:18px;font-weight:500;color:rgba(255,255,255,0.9)}
@@ -35,15 +36,66 @@ canvas#stars{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointe
 
 .days-card{text-align:center}
 .days-label{font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:8px}
-.days-num{font-family:'Playfair Display',serif;font-size:64px;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
-.days-unit{font-size:20px;color:rgba(255,255,255,0.8);margin-left:4px;font-family:'Noto Sans SC',sans-serif;-webkit-text-fill-color:rgba(255,255,255,0.8)}
+.days-num{font-family:'Playfair Display',serif;font-size:clamp(48px,15vw,64px);font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.days-unit{font-size:clamp(16px,4.5vw,20px);color:rgba(255,255,255,0.8);margin-left:4px;font-family:'Noto Sans SC',sans-serif;-webkit-text-fill-color:rgba(255,255,255,0.8)}
 .days-since{font-size:12px;color:rgba(255,255,255,0.4);margin-top:8px}
 
 .clocks{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .clock-card{text-align:center;padding:16px 12px}
-.clock-city{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:6px}
-.clock-time{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--purple);letter-spacing:1px}
-.clock-date{font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px}
+.clock-city{font-size:clamp(12px,3.5vw,13px);color:rgba(255,255,255,0.5);margin-bottom:6px}
+.clock-time{font-family:'Playfair Display',serif;font-size:clamp(20px,6vw,26px);font-weight:700;color:var(--purple);letter-spacing:1px}
+.clock-date{font-size:clamp(10px,3vw,11px);color:rgba(255,255,255,0.4);margin-top:4px}
+
+/* Small screen: stack clocks vertically */
+@media(max-width:360px){
+  .clocks{grid-template-columns:1fr;gap:8px}
+  .clock-card{padding:12px 8px}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .countdown-grid{gap:6px}
+  .cd-item{padding:8px 2px}
+  .card{padding:16px 14px}
+  .heart{font-size:28px}
+  .name{font-size:16px}
+  .fab{width:46px;height:46px;font-size:20px}
+  .drawer{border-radius:0;max-height:100vh}
+  .drawer-handle{margin-bottom:14px}
+  .setting-input{padding:14px 14px !important}
+}
+
+/* Very small screens (iPhone SE etc) */
+@media(max-width:320px){
+  .app{padding-left:12px;padding-right:12px}
+  .days-num{font-size:40px}
+  .clocks{gap:6px}
+}
+
+/* Map canvas responsive: auto height based on width */
+.map-wrap canvas{width:100%;height:auto;display:block}
+
+/* Toast safe area */
+.save-toast{top:calc(24px + env(safe-area-inset-top,0))}
+
+/* Touch-friendly memory add button */
+.memories-add{min-height:44px;display:flex;align-items:center;justify-content:center}
+
+/* Global touch-friendly: all buttons/min-tappable 44px */
+@media(hover:none){
+  .save-btn,.cancel-btn,.sync-btn,.game-start-btn,.game-over-btn,.game-close{
+    min-height:44px;
+    padding:14px 16px;
+  }
+  .game-diff-btn,.game-mode-btn{
+    min-height:36px;
+    padding:10px 14px;
+  }
+  .voice-play-btn{
+    width:42px;
+    height:42px;
+  }
+}
+
+/* Prevent text selection on double-tap iOS */
+*{-webkit-touch-callout:none}
 
 /* Map card */
 .map-card{padding:16px}
@@ -54,23 +106,23 @@ canvas#stars{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointe
 .countdown-label{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:12px}
 .countdown-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .cd-item{background:rgba(255,255,255,0.05);border-radius:12px;padding:10px 4px}
-.cd-num{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--pink)}
+.cd-num{font-family:'Playfair Display',serif;font-size:clamp(22px,7vw,28px);font-weight:700;color:var(--pink)}
 .cd-unit{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px}
 .countdown-met{font-size:20px;color:var(--pink)}
 
 
-.fab{position:fixed;bottom:24px;right:24px;z-index:100;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;cursor:pointer;font-size:22px;box-shadow:0 4px 20px rgba(192,132,252,0.4);transition:transform .2s}
+.fab{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0));right:calc(24px + env(safe-area-inset-right,0));z-index:100;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;cursor:pointer;font-size:22px;box-shadow:0 4px 20px rgba(192,132,252,0.4);transition:transform .2s}
 .fab:hover{transform:scale(1.1)}
 
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
 .drawer-overlay.open{opacity:1;pointer-events:all}
-.drawer{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:430px;background:linear-gradient(180deg,#1a1535,#0f0c29);border-radius:24px 24px 0 0;z-index:201;padding:24px 20px 40px;transition:transform .35s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto}
+.drawer{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:430px;background:linear-gradient(180deg,#1a1535,#0f0c29);border-radius:24px 24px 0 0;z-index:201;padding:24px 20px calc(40px + env(safe-area-inset-bottom,0));transition:transform .35s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto}
 .drawer.open{transform:translateX(-50%) translateY(0)}
 .drawer-handle{width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin:0 auto 20px}
 .drawer-title{font-size:18px;font-weight:700;text-align:center;margin-bottom:20px;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .setting-row{margin-bottom:16px}
 .setting-label{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:6px}
-.setting-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:#fff;font-size:14px;font-family:'Noto Sans SC',sans-serif;outline:none}
+.setting-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:12px;padding:clamp(10px,3vw,14px) 14px;color:#fff;font-size:16px;font-family:'Noto Sans SC',sans-serif;outline:none}
 .setting-input:focus{border-color:var(--purple)}
 .setting-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .save-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:16px;color:#fff;font-size:16px;font-weight:700;font-family:'Noto Sans SC',sans-serif;cursor:pointer;margin-top:8px}
@@ -98,19 +150,38 @@ select.setting-input option{background:#1a1535;color:#fff}
 .milestone .ms-emoji{font-size:22px;display:block;margin-bottom:4px}
 .milestone .ms-text{font-weight:500}
 .milestone .ms-sub{font-size:11px;color:rgba(255,255,255,0.55);margin-top:4px}
+
+/* Weather care bubble */
+.weather-care{margin:0 0 16px;padding:10px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(192,132,252,0.15));border:1px solid rgba(14,165,233,0.25);font-size:13px;color:rgba(255,255,255,0.8);text-align:center;animation:slideIn .5s ease-out}
+.weather-care .wc-emoji{margin-right:4px}
+
+/* Stats card */
+.stats-card{padding:14px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats-item{background:rgba(255,255,255,0.04);border-radius:12px;padding:10px 4px}
+.stats-num{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stats-label{font-size:11px;color:rgba(255,255,255,0.45);margin-top:2px}
+
+/* Memories search/filter */
+.memories-filter{margin-bottom:12px}
+.mem-search{width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:#fff;font-size:12px;font-family:'Noto Sans SC',sans-serif;outline:none;margin-bottom:8px}
+.mem-search:focus{border-color:var(--purple)}
+.mem-search::placeholder{color:rgba(255,255,255,0.3)}
+.mem-tags{display:flex;gap:6px;flex-wrap:wrap}
+.mem-tag-btn{font-size:13px;padding:4px 10px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:rgba(255,255,255,0.6);cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+.mem-tag-btn.active{background:linear-gradient(135deg,rgba(192,132,252,0.35),rgba(244,114,182,0.35));border-color:rgba(255,255,255,0.25);color:#fff}
+
 @keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 
 /* Onboarding */
 .onboard-overlay{position:fixed;inset:0;background:rgba(15,12,41,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:400;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .4s}
 .onboard-overlay.show{opacity:1;pointer-events:all}
 .onboard{max-width:340px;text-align:center;color:#fff}
-.onboard-emoji{font-size:64px;margin-bottom:16px;animation:pulse 1.5s ease-in-out infinite}
-.onboard-title{font-size:24px;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;font-family:'Playfair Display',serif}
-.onboard-text{font-size:15px;line-height:1.7;color:rgba(255,255,255,0.8);margin-bottom:28px}
+.onboard-emoji{font-size:clamp(48px,15vw,64px);margin-bottom:16px;animation:pulse 1.5s ease-in-out infinite}
+.onboard-title{font-size:clamp(20px,6vw,24px);font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;font-family:'Playfair Display',serif}
+.onboard-text{font-size:clamp(14px,4.2vw,15px);line-height:1.7;color:rgba(255,255,255,0.8);margin-bottom:28px}
 .onboard-btn{padding:14px 36px;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:24px;color:#fff;font-size:15px;font-weight:600;font-family:'Noto Sans SC',sans-serif;cursor:pointer;box-shadow:0 4px 20px rgba(192,132,252,0.4)}
 
-/* Seasonal effects layer */
-.season-canvas{position:fixed;inset:0;pointer-events:none;z-index:50}
 
 /* Memories timeline */
 .memories-card{padding:18px}
@@ -125,8 +196,9 @@ select.setting-input option{background:#1a1535;color:#fff}
 .memory-meta{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:6px}
 .memory-tag{font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(192,132,252,0.18);color:#e0aaff}
 .memory-text{font-size:14px;line-height:1.55;color:rgba(255,255,255,0.85);white-space:pre-wrap;word-break:break-word}
-.memory-del{position:absolute;top:8px;right:8px;background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:14px;padding:4px;line-height:1;opacity:0;transition:opacity .2s}
+.memory-del{position:absolute;top:8px;right:8px;background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:18px;padding:10px;line-height:1;opacity:0.5;transition:opacity .2s}
 .memory-item:hover .memory-del,.memory-item:focus-within .memory-del{opacity:1}
+@media(hover:none){.memory-del{opacity:0.5}}
 .memory-del:hover{color:rgba(255,150,150,0.9)}
 .memories-empty{text-align:center;font-size:13px;color:rgba(255,255,255,0.35);padding:24px 0}
 
@@ -184,19 +256,106 @@ select.setting-input option{background:#1a1535;color:#fff}
 .voice-wave{height:24px;display:flex;align-items:center;gap:2px}
 .voice-wave .bar{flex:1;background:linear-gradient(180deg,var(--purple),var(--pink));border-radius:2px;min-width:2px;opacity:0.6}
 .voice-item.playing .voice-wave .bar.active{opacity:1;background:#fff}
-.voice-del{background:none;border:none;color:rgba(255,255,255,0.35);cursor:pointer;font-size:14px;padding:6px;line-height:1}
+.voice-del{background:none;border:none;color:rgba(255,255,255,0.35);cursor:pointer;font-size:18px;padding:10px;line-height:1}
 .voice-del:hover{color:rgba(255,150,150,0.9)}
+@media(hover:none){.voice-del{opacity:0.5}}
 .voice-empty{text-align:center;font-size:13px;color:rgba(255,255,255,0.35);padding:20px 0}
 
 /* Fireworks layer (meetup day) */
 .fw-canvas{position:fixed;inset:0;pointer-events:none;z-index:60;display:none}
 .fw-canvas.show{display:block}
+
+/* ==================== Game ==================== */
+/* Game entry card */
+.game-entry{text-align:center;padding:20px 18px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .15s}
+.game-entry:active{transform:scale(0.97)}
+.game-entry-emoji{font-size:42px;margin-bottom:8px}
+.game-entry-title{font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.game-entry-desc{font-size:12px;color:rgba(255,255,255,0.45)}
+
+/* Game full screen overlay */
+.game-overlay{position:fixed;inset:0;z-index:500;background:linear-gradient(180deg,#0f0c29,#1a0533 40%,#6b21a8 100%);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .3s}
+.game-overlay.open{opacity:1;pointer-events:all}
+.game-top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 8px;z-index:2}
+.game-close{background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;cursor:pointer}
+.game-title{font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.game-score-bar{display:flex;align-items:center;gap:16px;font-size:14px;color:rgba(255,255,255,0.7)}
+.game-score-val{color:var(--pink);font-weight:700;font-size:18px}
+.game-lives{display:flex;gap:4px;font-size:16px}
+
+/* Game field */
+.game-field{flex:1;position:relative;overflow:hidden;margin:8px 12px;border-radius:20px;background:rgba(255,255,255,0.03);border:1px solid var(--border)}
+.game-holes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:8px;padding:12px;height:100%;box-sizing:border-box}
+.game-hole{background:rgba(255,255,255,0.04);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.game-mole{font-size:clamp(28px,12vw,40px);position:absolute;bottom:-50px;transition:bottom .15s ease-out;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;z-index:2}
+.game-mole.visible{bottom:4px}
+.game-mole.hit{animation:moleHit .3s ease-out forwards}
+@keyframes moleHit{0%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.6}100%{transform:scale(0);opacity:0}}
+
+/* Love note popup */
+.game-note-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);background:linear-gradient(135deg,rgba(192,132,252,0.95),rgba(244,114,182,0.95));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:20px;padding:28px 24px;text-align:center;z-index:510;opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.32,.72,0,1);max-width:300px;box-shadow:0 8px 40px rgba(192,132,252,0.4)}
+.game-note-popup.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+.game-note-emoji{font-size:36px;margin-bottom:12px}
+.game-note-text{font-size:16px;font-weight:500;line-height:1.6;color:#fff}
+.game-note-close{margin-top:16px;background:rgba(255,255,255,0.2);border:none;border-radius:12px;padding:8px 20px;color:#fff;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+.game-note-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:509;opacity:0;pointer-events:none;transition:opacity .3s}
+.game-note-backdrop.show{opacity:1;pointer-events:all}
+
+/* Game controls */
+.game-controls{padding:12px 18px 24px;display:flex;flex-direction:column;gap:10px}
+.game-start-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:16px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;box-shadow:0 4px 20px rgba(192,132,252,0.3)}
+.game-start-btn:active{transform:scale(0.97)}
+.game-start-btn:disabled{opacity:0.4;cursor:default;transform:none}
+.game-diff-row{display:flex;gap:8px;justify-content:center}
+.game-diff-btn{padding:8px 16px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:rgba(255,255,255,0.6);font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+.game-diff-btn.active{background:linear-gradient(135deg,rgba(192,132,252,0.35),rgba(244,114,182,0.35));border-color:rgba(255,255,255,0.25);color:#fff}
+.game-timer-bar{height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden}
+.game-timer-fill{height:100%;background:linear-gradient(90deg,var(--pink),var(--purple));border-radius:2px;transition:width .1s linear}
+
+/* Game combo */
+.game-combo{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;font-weight:700;color:var(--pink);pointer-events:none;z-index:508;opacity:0}
+.game-combo.show{animation:comboPop .8s ease-out forwards}
+@keyframes comboPop{0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-60%) scale(0.8)}}
+
+/* Miss splash */
+.game-miss-splash{position:absolute;pointer-events:none;z-index:3}
+.game-miss-splash span{position:absolute;font-size:20px;animation:missFloat 1s ease-out forwards}
+@keyframes missFloat{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--mx),-40px) scale(0.5)}}
+
+/* Note editor */
+.game-note-editor-btn{padding:10px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:12px;color:rgba(255,255,255,0.7);font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;width:100%;display:flex;align-items:center;justify-content:center;gap:6px}
+
+/* Note list in editor */
+.game-note-list{max-height:60vh;overflow-y:auto;margin:12px -20px;padding:0 20px}
+.game-note-list::-webkit-scrollbar{width:4px}
+.game-note-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px}
+.game-note-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:8px}
+.game-note-item-text{flex:1;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.5;word-break:break-word}
+.game-note-item-del{background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0}
+.game-note-item-del:hover{color:rgba(255,150,150,0.9)}
+.game-note-add-area{display:flex;gap:8px;margin-top:12px}
+.game-note-add-input{flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:#fff;font-size:13px;font-family:'Noto Sans SC',sans-serif;outline:none}
+.game-note-add-input:focus{border-color:var(--purple)}
+.game-note-add-btn{background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:10px;padding:8px 14px;color:#fff;font-size:16px;cursor:pointer}
+
+/* Game over screen */
+.game-over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,12,41,0.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:5;gap:12px;opacity:0;pointer-events:none;transition:opacity .4s}
+.game-over.show{opacity:1;pointer-events:auto}
+.game-over-emoji{font-size:64px}
+.game-over-score{font-size:48px;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.game-over-label{font-size:14px;color:rgba(255,255,255,0.5)}
+.game-over-best{font-size:13px;color:rgba(255,255,255,0.35)}
+.game-over-btn{margin-top:8px;padding:12px 32px;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:16px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+
+/* Game mode tabs */
+.game-mode-row{display:flex;gap:8px;justify-content:center;padding:0 18px 8px}
+.game-mode-btn{padding:6px 14px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+.game-mode-btn.active{background:linear-gradient(135deg,rgba(192,132,252,0.35),rgba(244,114,182,0.35));border-color:rgba(255,255,255,0.25);color:#fff}
 </style>
 </head>
 <body class="sky-night">
 <noscript><div class="noscript-msg"><div><h2 style="margin-bottom:12px">💕 我们的小窝</h2><p>这个小窝需要 JavaScript 才能运行。<br>请在浏览器设置里开启 JavaScript 后刷新页面。</p></div></div></noscript>
 <canvas id="stars"></canvas>
-<canvas id="seasonCanvas" class="season-canvas"></canvas>
 <canvas id="fwCanvas" class="fw-canvas"></canvas>
 <div class="app">
   <div class="header">
@@ -206,6 +365,31 @@ select.setting-input option{background:#1a1535;color:#fff}
   </div>
 
   <div id="milestoneBanner"></div>
+
+  <!-- Weather care bubble -->
+  <div id="weatherCare"></div>
+
+  <!-- Stats card -->
+  <div class="card stats-card" id="statsCard">
+    <div class="stats-grid">
+      <div class="stats-item">
+        <div class="stats-num" id="statsDays">0</div>
+        <div class="stats-label">在一起</div>
+      </div>
+      <div class="stats-item">
+        <div class="stats-num" id="statsMemories">0</div>
+        <div class="stats-label">回忆</div>
+      </div>
+      <div class="stats-item">
+        <div class="stats-num" id="statsVoices">0</div>
+        <div class="stats-label">语音</div>
+      </div>
+      <div class="stats-item">
+        <div class="stats-num" id="statsStorage">0</div>
+        <div class="stats-label">KB 存储</div>
+      </div>
+    </div>
+  </div>
 
   <div class="card days-card">
     <div class="days-label">我们在一起</div>
@@ -268,7 +452,25 @@ select.setting-input option{background:#1a1535;color:#fff}
       <div class="memories-title">📖 我们的回忆</div>
       <button class="memories-add" id="memAddBtn">+ 记下一笔</button>
     </div>
+    <!-- Search + Filter -->
+    <div class="memories-filter" id="memFilter">
+      <input class="mem-search" id="memSearch" type="text" placeholder="搜索回忆...">
+      <div class="mem-tags" id="memFilterTags">
+        <button class="mem-tag-btn active" data-tag="all">全部</button>
+        <button class="mem-tag-btn" data-tag="date">💗</button>
+        <button class="mem-tag-btn" data-tag="call">📞</button>
+        <button class="mem-tag-btn" data-tag="gift">🎁</button>
+        <button class="mem-tag-btn" data-tag="travel">✈️</button>
+        <button class="mem-tag-btn" data-tag="food">🍰</button>
+      </div>
+    </div>
     <div class="memories-list" id="memList"></div>
+  </div>
+
+  <div class="card game-entry" id="gameEntryBtn">
+    <div class="game-entry-emoji">🎮</div>
+    <div class="game-entry-title">恋爱小游戏</div>
+    <div class="game-entry-desc">打地鼠 · 抓星星 · 弹情话</div>
   </div>
 
 </div>
@@ -358,7 +560,7 @@ select.setting-input option{background:#1a1535;color:#fff}
   </div>
   <div class="setting-row">
     <div class="setting-label">标签</div>
-    <div class="tag-row" id="memTags"></div>
+    <div class="tag-row" id="memTagPicker"></div>
   </div>
   <div class="btn-row">
     <button class="cancel-btn" id="memCancelBtn">取消</button>
@@ -581,6 +783,13 @@ function loadSettings(){
 function saveSettings(s){Object.keys(s).forEach(k=>localStorage.setItem(k,s[k]))}
 let cfg=loadSettings();
 
+// Memories filter state
+let _memFilterTag='all';
+let _memFilterText='';
+
+// Weather cache for care bubble
+let _weatherCacheA=null,_weatherCacheB=null;
+
 function populateTz(){
   ['sTzA','sTzB'].forEach(id=>{
     const sel=document.getElementById(id);
@@ -672,10 +881,13 @@ async function updateWeather(){
     if(w&&typeof w.t==='number'){
       const m=WMO[w.code]||['🌤️',''];
       el.innerHTML='<span class="w-emoji">'+m[0]+'</span><span>'+w.t+'° '+m[1]+'</span>';
+      // Cache for care bubble
+      if(id==='weatherA')_weatherCacheA=w;else _weatherCacheB=w;
     }else{
       el.innerHTML='';
     }
   }
+  updateWeatherCare();
 }
 
 // ===== Heart click - particle burst =====
@@ -703,69 +915,7 @@ function spawnHeartParticles(originX,originY){
   if(navigator.vibrate)try{navigator.vibrate(20)}catch(_){}
 }
 
-// ===== Seasonal background effects =====
-// Falls back gracefully on low-end devices via prefers-reduced-motion.
 const prefersReducedMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-function getActiveSeason(){
-  const now=new Date();
-  const m=now.getMonth()+1,d=now.getDate();
-  // Anniversary day
-  const anniv=parseLocalDate(cfg.anniv);
-  if(anniv&&anniv.getMonth()+1===m&&anniv.getDate()===d){
-    return{kind:'hearts',name:'纪念日'};
-  }
-  // Valentine's
-  if(m===2&&d===14)return{kind:'hearts',name:'情人节'};
-  // Qixi (rough lunar 7/7 → fallback to fixed Aug 25 +/- few days; better: use solar approximation)
-  // Skip lunar for now to avoid heavy code; users can still get hearts on anniv/valentines.
-  // Christmas / December snow
-  if(m===12)return{kind:'snow',name:'冬季'};
-  if(m===1)return{kind:'snow',name:'冬季'};
-  // Spring sakura March-April
-  if(m===3||m===4)return{kind:'sakura',name:'春天'};
-  return null;
-}
-let seasonRaf=null,seasonParticles=[];
-function startSeason(){
-  const cv=document.getElementById('seasonCanvas');
-  if(!cv||!cv.getContext)return;
-  const season=getActiveSeason();
-  if(!season||prefersReducedMotion){cv.style.display='none';if(seasonRaf)cancelAnimationFrame(seasonRaf);seasonRaf=null;seasonParticles=[];return}
-  cv.style.display='block';
-  const ctx=cv.getContext('2d');
-  if(!ctx)return;
-  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight}
-  resize();window.addEventListener('resize',resize);
-  const conf={
-    snow:{n:60,emoji:['❄️','❅️','·'],sz:[10,18],speed:[0.3,1.2],sway:0.5},
-    sakura:{n:40,emoji:['🌸','🌸','🌼'],sz:[14,22],speed:[0.4,1.4],sway:1.5},
-    hearts:{n:25,emoji:['❤️','💖','💕','💗'],sz:[14,24],speed:[0.4,1.0],sway:1.0}
-  }[season.kind];
-  seasonParticles=[];
-  for(let i=0;i<conf.n;i++){
-    seasonParticles.push({
-      x:Math.random()*cv.width,y:Math.random()*cv.height,
-      sz:conf.sz[0]+Math.random()*(conf.sz[1]-conf.sz[0]),
-      vy:conf.speed[0]+Math.random()*(conf.speed[1]-conf.speed[0]),
-      drift:Math.random()*Math.PI*2,driftSpeed:0.005+Math.random()*0.01,
-      sway:conf.sway,emoji:conf.emoji[Math.floor(Math.random()*conf.emoji.length)],
-      rot:Math.random()*Math.PI*2,vr:(Math.random()-0.5)*0.02
-    });
-  }
-  function tick(){
-    ctx.clearRect(0,0,cv.width,cv.height);
-    seasonParticles.forEach(p=>{
-      p.y+=p.vy;p.drift+=p.driftSpeed;p.rot+=p.vr;
-      p.x+=Math.sin(p.drift)*p.sway;
-      if(p.y>cv.height+30){p.y=-30;p.x=Math.random()*cv.width}
-      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.font=p.sz+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.emoji,0,0);ctx.restore();
-    });
-    seasonRaf=requestAnimationFrame(tick);
-  }
-  if(seasonRaf)cancelAnimationFrame(seasonRaf);
-  tick();
-}
-
 // ===== Memories (local timeline) =====
 const MEMORY_TAGS=[{key:'date',emoji:'💗',label:'约会'},{key:'call',emoji:'📞',label:'电话'},{key:'gift',emoji:'🎁',label:'礼物'},{key:'travel',emoji:'✈️',label:'旅行'},{key:'food',emoji:'🍰',label:'美食'},{key:'milestone',emoji:'✨',label:'里程碑'},{key:'argue',emoji:'🌧️',label:'小争执'},{key:'other',emoji:'💭',label:'其他'}];
 function loadMemories(){
@@ -781,13 +931,25 @@ function formatMemDate(s){
 }
 function renderMemories(){
   const list=document.getElementById('memList');if(!list)return;
-  const items=loadMemories().sort((a,b)=>(a.date<b.date?1:-1));
-  if(!items.length){list.innerHTML='<div class="memories-empty">还没有回忆，从今天开始记录吧 💕</div>';return}
-  list.innerHTML=items.map(m=>{
-    const tag=memTagInfo(m.tag);
-    const text=(m.text||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
-    return '<div class="memory-item" data-id="'+m.id+'"><button class="memory-del" aria-label="删除">✕</button><div class="memory-meta"><span class="memory-tag">'+tag.emoji+' '+tag.label+'</span><span>'+formatMemDate(m.date)+'</span></div><div class="memory-text">'+text+'</div></div>';
-  }).join('');
+  let items=loadMemories().sort((a,b)=>(a.date<b.date?1:-1));
+  // Filter by tag
+  if(_memFilterTag&&_memFilterTag!=='all'){
+    items=items.filter(m=>m.tag===_memFilterTag);
+  }
+  // Filter by search text
+  if(_memFilterText){
+    const q=_memFilterText.toLowerCase();
+    items=items.filter(m=>(m.text||'').toLowerCase().includes(q));
+  }
+  if(!items.length){
+    list.innerHTML='<div class="memories-empty">'+(_memFilterText||_memFilterTag&&_memFilterTag!=='all'?'没有找到匹配的回忆':'还没有回忆，从今天开始记录吧 💕')+'</div>';
+  }else{
+    list.innerHTML=items.map(m=>{
+      const tag=memTagInfo(m.tag);
+      const text=(m.text||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+      return '<div class="memory-item" data-id="'+m.id+'"><button class="memory-del" aria-label="删除">✕</button><div class="memory-meta"><span class="memory-tag">'+tag.emoji+' '+tag.label+'</span><span>'+formatMemDate(m.date)+'</span></div><div class="memory-text">'+text+'</div></div>';
+    }).join('');
+  }
   // Wire delete buttons
   list.querySelectorAll('.memory-del').forEach(btn=>{
     btn.addEventListener('click',e=>{
@@ -799,12 +961,13 @@ function renderMemories(){
       renderMemories();
     });
   });
+  updateStats();
 }
 
 // Memory editor modal
 let currentEditTags='other';
 function renderMemTagPicker(){
-  const row=document.getElementById('memTags');if(!row)return;
+  const row=document.getElementById('memTagPicker');if(!row)return;
   row.innerHTML=MEMORY_TAGS.map(t=>'<button type="button" class="tag-chip'+(t.key===currentEditTags?' active':'')+'" data-tag="'+t.key+'">'+t.emoji+' '+t.label+'</button>').join('');
   row.querySelectorAll('.tag-chip').forEach(c=>{
     c.addEventListener('click',()=>{currentEditTags=c.dataset.tag;renderMemTagPicker();});
@@ -922,7 +1085,7 @@ function applySyncPayload(data){
     data.m.forEach(m=>{if(m&&m.id&&!seen.has(m.id))existing.push(m)});
     saveMemories(existing);
   }
-  applySettings();updateDays();updateClocks();updateCountdown();updateSky();drawMap();updateWeather();startSeason();renderMemories();renderMeetupPlace();
+  applySettings();updateDays();updateClocks();updateCountdown();updateSky();drawMap();updateWeather();renderMemories();renderMeetupPlace();
 }
 // ===== Backup file (full export/import incl. voice memos) =====
 // Encodes Blob ↔ base64 (chunked to avoid call-stack issues with very large blobs)
@@ -1020,7 +1183,7 @@ async function importBackupFile(file){
     }catch(_){}
   }
   // Re-render
-  applySettings();updateDays();updateClocks();updateCountdown();updateSky();drawMap();updateWeather();startSeason();renderMemories();renderMeetupPlace();renderVoices();
+  applySettings();updateDays();updateClocks();updateCountdown();updateSky();drawMap();updateWeather();renderMemories();renderMeetupPlace();renderVoices();
   showToast('导入成功：新增 '+added+' 条语音 💕');
 }
 
@@ -1475,6 +1638,7 @@ function updateDays(){
   renderMilestone(diff);
 }
 updateDays();
+updateStats();
 
 // ===== Clocks =====
 function pad(n){return String(n).padStart(2,'0')}
@@ -1581,7 +1745,6 @@ document.addEventListener('visibilitychange',()=>{
 startTimers();
 updateSky();
 updateWeather();
-startSeason();
 maybeShowOnboarding();
 // Refresh weather hourly
 setInterval(updateWeather,60*60*1000);
@@ -1913,10 +2076,82 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
   updateSky();
   drawMap();
   updateWeather();
-  startSeason();
   renderMeetupPlace();
   closeDrawer();
   showToast();
+});
+
+// ===== Weather care bubble =====
+function updateWeatherCare(){
+  const el=document.getElementById('weatherCare');
+  if(!el)return;
+  const a=_weatherCacheA,b=_weatherCacheB;
+  if(!a||!b)return;
+  // Bad weather codes: rain(51-82,80-82), snow(71-86), thunder(95-99), fog(45,48)
+  const badRain=[51,53,55,61,63,65,80,81,82,95,96,99];
+  const badSnow=[71,73,75,77,85,86];
+  const badFog=[45,48];
+  let msg='';
+  const aBad=badRain.includes(a.code)||badSnow.includes(a.code)||badFog.includes(a.code);
+  const bBad=badRain.includes(b.code)||badSnow.includes(b.code)||badFog.includes(b.code);
+  // TA 那边天气不好
+  if(bBad){
+    const w=WMO[b.code]||['🌤️',''];
+    if(badRain.includes(b.code))msg='💧 TA 那边在下'+(w[1]||'雨')+'，记得提醒带伞';
+    else if(badSnow.includes(b.code))msg='❄️ TA 那边在下'+(w[1]||'雪')+'，提醒多穿点';
+    else if(badFog.includes(b.code))msg='🌫️ TA 那边有雾，注意出行安全';
+  }
+  // 温差大
+  if(!msg&&Math.abs(a.t-b.t)>=15){
+    msg='🌡️ 你们温差 '+Math.abs(a.t-b.t)+'°C，注意增减衣服';
+  }
+  el.innerHTML=msg?'<div class="weather-care"><span class="wc-emoji"></span>'+msg+'</div>':'';
+}
+
+// ===== Stats card =====
+async function updateStats(){
+  const days=parseInt(document.getElementById('daysNum')?.textContent||'0');
+  const mems=loadMemories();
+  const voices=await voiceList();
+  let storage=0;
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k)storage+=(localStorage[k]?.length||0)*2;
+    }
+  }catch(_){}
+  const elDays=document.getElementById('statsDays');
+  const elMems=document.getElementById('statsMemories');
+  const elVoices=document.getElementById('statsVoices');
+  const elStorage=document.getElementById('statsStorage');
+  if(elDays)elDays.textContent=days;
+  if(elMems)elMems.textContent=mems.length;
+  if(elVoices)elVoices.textContent=voices.length;
+  if(elStorage)elStorage.textContent=Math.round(storage/1024);
+}
+
+// ===== Memories search/filter =====
+// Search input
+document.addEventListener('DOMContentLoaded',()=>{
+  const searchEl=document.getElementById('memSearch');
+  if(searchEl){
+    searchEl.addEventListener('input',e=>{
+      _memFilterText=e.target.value.trim();
+      renderMemories();
+    });
+  }
+  // Tag buttons
+  const tagsEl=document.getElementById('memFilterTags');
+  if(tagsEl){
+    tagsEl.addEventListener('click',e=>{
+      const btn=e.target.closest('.mem-tag-btn');
+      if(!btn)return;
+      tagsEl.querySelectorAll('.mem-tag-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      _memFilterTag=btn.dataset.tag;
+      renderMemories();
+    });
+  }
 });
 
 // ===== PWA Service Worker =====
@@ -1945,6 +2180,635 @@ if ('serviceWorker' in navigator) {
   };
   document.head.appendChild(s);
 })();
+
+/* ==================== 恋爱小游戏 ==================== */
+function __initLoveGame(){
+  const DEFAULT_NOTES = [
+    '我喜欢你 💕',
+    '想见你了 🥰',
+    '今天也很想你 ✨',
+    '你是我的小可爱 🐰',
+    '抱抱你 🤗',
+    '亲亲 😘',
+    '世界上最好的就是你 🌟',
+    '能遇到你真好 🍀',
+    '永远爱你 💖',
+    '你笑起来真好看 😊'
+  ];
+  const NOTE_EMOJIS = ['💕','🥰','✨','💖','💝','💗','😘','🤗','🌹','🦋','🌸','💫','⭐','🌟','🎀','🍀'];
+
+  // ---- State ----
+  let gameState = {
+    mode: 'whack',           // 'whack' | 'star'
+    difficulty: 'easy',
+    score: 0,
+    combo: 0,
+    lives: 3,
+    running: false,
+    timeLeft: 60,
+    timerId: null,
+    moleSpawnerId: null,
+    starSpawnerId: null,
+    starAnimId: null,
+    activeMoles: new Set(),
+    stars: []
+  };
+
+  // Difficulty config
+  const DIFF = {
+    easy:   { duration: 60, moleUpMs: 1400, moleHideMs: 1100, simultaneous: 1, starInterval: 900, starSpeed: 1.0 },
+    normal: { duration: 50, moleUpMs: 1000, moleHideMs: 800,  simultaneous: 2, starInterval: 600, starSpeed: 1.4 },
+    hard:   { duration: 40, moleUpMs: 700,  moleHideMs: 550,  simultaneous: 3, starInterval: 400, starSpeed: 1.9 }
+  };
+
+  // ---- DOM ----
+  const $ = id => document.getElementById(id);
+  const overlay = $('gameOverlay');
+  const entryBtn = $('gameEntryBtn');
+  const closeBtn = $('gameClose');
+  const startBtn = $('gameStartBtn');
+  const restartBtn = $('gameRestart');
+  const editorBtn = $('gameNoteEditorBtn');
+  const scoreEl = $('gameScore');
+  const livesEl = $('gameLives');
+  const comboEl = $('gameCombo');
+  const timerFill = $('gameTimerFill');
+  const holesEl = $('gameHoles');
+  const moles = Array.from(document.querySelectorAll('.game-mole'));
+  const starCanvas = $('gameStarCanvas');
+  const fieldEl = $('gameField');
+  const gameOverEl = $('gameOver');
+  const gameOverScore = $('gameOverScore');
+  const gameOverEmoji = $('gameOverEmoji');
+  const gameOverBest = $('gameOverBest');
+  const notePopup = $('gameNotePopup');
+  const noteBackdrop = $('gameNoteBackdrop');
+  const noteText = $('gameNoteText');
+  const noteEmoji = $('gameNoteEmoji');
+  const noteCloseBtn = $('gameNoteClose');
+  const comboPop = $('gameComboPop');
+
+  // Note editor
+  const editorOverlay = $('noteEditorOverlay');
+  const editorModal = $('noteEditorModal');
+  const editorList = $('noteEditorList');
+  const noteAddInput = $('noteAddInput');
+  const noteAddBtn = $('noteAddBtn');
+  const editorCancel = $('noteEditorCancel');
+  const editorSave = $('noteEditorSave');
+
+  // ---- Notes storage ----
+  function loadNotes(){
+    try {
+      const raw = localStorage.getItem('loveNotes');
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr) && arr.length) return arr;
+      }
+    } catch(e){}
+    return DEFAULT_NOTES.slice();
+  }
+  function saveNotes(notes){
+    try { localStorage.setItem('loveNotes', JSON.stringify(notes)); } catch(e){}
+  }
+  let notes = loadNotes();
+
+  // ---- Best score ----
+  function bestScore(mode, diff){
+    try { return parseInt(localStorage.getItem(`gameBest_${mode}_${diff}`) || '0', 10); } catch(e){ return 0; }
+  }
+  function saveBest(mode, diff, score){
+    try { localStorage.setItem(`gameBest_${mode}_${diff}`, String(score)); } catch(e){}
+  }
+
+  // ---- UI updates ----
+  function updateScore(){ scoreEl.textContent = gameState.score; }
+  function updateLives(){
+    livesEl.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const heart = document.createElement('span');
+      heart.textContent = i < gameState.lives ? '❤️' : '🤍';
+      heart.style.opacity = i < gameState.lives ? '1' : '0.4';
+      livesEl.appendChild(heart);
+    }
+  }
+  function updateCombo(){
+    comboEl.textContent = gameState.combo >= 3 ? `连击 x${gameState.combo}` : '';
+  }
+  function updateTimer(){
+    const cfg = DIFF[gameState.difficulty];
+    const pct = Math.max(0, (gameState.timeLeft / cfg.duration) * 100);
+    timerFill.style.width = pct + '%';
+  }
+
+  // ---- Open / close ----
+  function openGame(){
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    gameState.score = 0;
+    gameState.combo = 0;
+    gameState.lives = 3;
+    updateScore(); updateLives(); updateCombo();
+    showStartUI();
+  }
+  function closeGame(){
+    stopGame();
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    hideNote();
+  }
+  entryBtn.addEventListener('click', openGame);
+  closeBtn.addEventListener('click', closeGame);
+
+  // ---- Mode switch ----
+  document.querySelectorAll('.game-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (gameState.running) return;
+      document.querySelectorAll('.game-mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      gameState.mode = btn.dataset.mode;
+      switchModeUI();
+    });
+  });
+  function switchModeUI(){
+    if (gameState.mode === 'whack') {
+      holesEl.style.display = 'grid';
+      starCanvas.style.display = 'none';
+    } else {
+      holesEl.style.display = 'none';
+      starCanvas.style.display = 'block';
+    }
+  }
+
+  // ---- Difficulty ----
+  document.querySelectorAll('.game-diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (gameState.running) return;
+      document.querySelectorAll('.game-diff-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      gameState.difficulty = btn.dataset.diff;
+    });
+  });
+
+  // ---- Start / stop ----
+  function showStartUI(){
+    gameOverEl.classList.remove('show');
+    startBtn.style.display = 'block';
+    startBtn.disabled = false;
+    timerFill.style.width = '100%';
+  }
+  function startGame(){
+    const cfg = DIFF[gameState.difficulty];
+    gameState.running = true;
+    gameState.score = 0;
+    gameState.combo = 0;
+    gameState.lives = 3;
+    gameState.timeLeft = cfg.duration;
+    updateScore(); updateLives(); updateCombo(); updateTimer();
+    gameOverEl.classList.remove('show');
+    startBtn.style.display = 'none';
+
+    // Master timer
+    gameState.timerId = setInterval(() => {
+      gameState.timeLeft -= 0.1;
+      updateTimer();
+      if (gameState.timeLeft <= 0) endGame('time');
+    }, 100);
+
+    if (gameState.mode === 'whack') startWhack(cfg);
+    else startStar(cfg);
+  }
+  function stopGame(){
+    gameState.running = false;
+    clearInterval(gameState.timerId);
+    clearTimeout(gameState.moleSpawnerId);
+    clearTimeout(gameState.starSpawnerId);
+    cancelAnimationFrame(gameState.starAnimId);
+    moles.forEach(m => { m.classList.remove('visible','hit'); });
+    gameState.activeMoles.clear();
+    gameState.stars = [];
+    if (starCanvas.getContext) {
+      const ctx = starCanvas.getContext('2d');
+      ctx.clearRect(0,0,starCanvas.width,starCanvas.height);
+    }
+  }
+  function endGame(reason){
+    stopGame();
+    const best = bestScore(gameState.mode, gameState.difficulty);
+    if (gameState.score > best) {
+      saveBest(gameState.mode, gameState.difficulty, gameState.score);
+      gameOverBest.textContent = `🏆 新记录！上次最佳 ${best}`;
+      gameOverEmoji.textContent = '🎉';
+    } else {
+      gameOverBest.textContent = best > 0 ? `最佳 ${best} 分` : '';
+      gameOverEmoji.textContent = reason === 'lives' ? '💔' : (gameState.score >= 30 ? '💕' : '🌸');
+    }
+    gameOverScore.textContent = gameState.score;
+    gameOverEl.classList.add('show');
+  }
+  startBtn.addEventListener('click', startGame);
+  restartBtn.addEventListener('click', startGame);
+
+  // ---- Whack-a-mole ----
+  function startWhack(cfg){
+    spawnMoleLoop(cfg);
+  }
+  function spawnMoleLoop(cfg){
+    if (!gameState.running) return;
+    // Spawn up to `simultaneous` moles
+    const canSpawn = cfg.simultaneous - gameState.activeMoles.size;
+    for (let i = 0; i < canSpawn; i++) {
+      if (Math.random() > 0.7 && i > 0) break; // sometimes don't fill all
+      spawnOneMole(cfg);
+    }
+    const nextDelay = cfg.moleUpMs + Math.random() * 400;
+    gameState.moleSpawnerId = setTimeout(() => spawnMoleLoop(cfg), nextDelay);
+  }
+  function spawnOneMole(cfg){
+    const free = moles.filter(m => !gameState.activeMoles.has(parseInt(m.dataset.mole, 10)));
+    if (!free.length) return;
+    const mole = free[Math.floor(Math.random() * free.length)];
+    const idx = parseInt(mole.dataset.mole, 10);
+    gameState.activeMoles.add(idx);
+    // Random emoji - some are bombs (penalty)
+    const isBomb = Math.random() < 0.12;
+    mole.dataset.bomb = isBomb ? '1' : '0';
+    mole.textContent = isBomb ? '💣' : (Math.random() < 0.3 ? '🐹' : '🐭');
+    mole.classList.remove('hit');
+    requestAnimationFrame(() => mole.classList.add('visible'));
+    const hideAt = setTimeout(() => {
+      if (gameState.activeMoles.has(idx)) {
+        mole.classList.remove('visible');
+        gameState.activeMoles.delete(idx);
+        // Missed mole = combo break
+        if (mole.dataset.bomb !== '1') {
+          gameState.combo = 0;
+          updateCombo();
+        }
+      }
+    }, cfg.moleHideMs);
+    mole._hideTimer = hideAt;
+  }
+  moles.forEach(mole => {
+    const handler = (e) => {
+      if (!gameState.running) return;
+      if (!mole.classList.contains('visible')) return;
+      e.preventDefault();
+      const idx = parseInt(mole.dataset.mole, 10);
+      const isBomb = mole.dataset.bomb === '1';
+      clearTimeout(mole._hideTimer);
+      gameState.activeMoles.delete(idx);
+      mole.classList.add('hit');
+      setTimeout(() => { mole.classList.remove('visible','hit'); }, 300);
+
+      if (isBomb) {
+        // Lose a life
+        gameState.lives--;
+        gameState.combo = 0;
+        updateLives(); updateCombo();
+        showMissSplash(mole, '💔');
+        if (gameState.lives <= 0) endGame('lives');
+      } else {
+        gameState.combo++;
+        const points = 1 + Math.floor(gameState.combo / 3);
+        gameState.score += points;
+        updateScore(); updateCombo();
+        if (gameState.combo > 0 && gameState.combo % 5 === 0) {
+          showCombo(`x${gameState.combo} 连击!`);
+          showRandomNote(); // bonus love note every 5 combo
+        } else if (gameState.score > 0 && gameState.score % 8 === 0) {
+          // also show note occasionally
+          showRandomNote();
+        }
+      }
+    };
+    mole.addEventListener('click', handler);
+    mole.addEventListener('touchstart', handler, { passive: false });
+  });
+  function showMissSplash(el, emoji){
+    const splash = document.createElement('div');
+    splash.className = 'game-miss-splash';
+    const rect = el.getBoundingClientRect();
+    const fieldRect = fieldEl.getBoundingClientRect();
+    splash.style.left = (rect.left - fieldRect.left + rect.width/2) + 'px';
+    splash.style.top = (rect.top - fieldRect.top) + 'px';
+    const span = document.createElement('span');
+    span.textContent = emoji;
+    span.style.setProperty('--mx', (Math.random() * 40 - 20) + 'px');
+    splash.appendChild(span);
+    fieldEl.appendChild(splash);
+    setTimeout(() => splash.remove(), 1100);
+  }
+  function showCombo(text){
+    comboPop.textContent = text;
+    comboPop.classList.remove('show');
+    void comboPop.offsetWidth;
+    comboPop.classList.add('show');
+  }
+
+  // ---- Star catching mode ----
+  let starCtx = null;
+  function startStar(cfg){
+    sizeStarCanvas();
+    gameState.stars = [];
+    spawnStarLoop(cfg);
+    animateStars();
+  }
+  function sizeStarCanvas(){
+    const rect = fieldEl.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    starCanvas.width = rect.width * dpr;
+    starCanvas.height = rect.height * dpr;
+    starCanvas.style.width = rect.width + 'px';
+    starCanvas.style.height = rect.height + 'px';
+    starCtx = starCanvas.getContext('2d');
+    starCtx.scale(dpr, dpr);
+  }
+  function spawnStarLoop(cfg){
+    if (!gameState.running) return;
+    const rect = fieldEl.getBoundingClientRect();
+    const isBomb = Math.random() < 0.1;
+    gameState.stars.push({
+      x: Math.random() * (rect.width - 40) + 20,
+      y: rect.height + 30,
+      vy: -(0.8 + Math.random() * 1.5) * cfg.starSpeed,
+      vx: (Math.random() - 0.5) * 0.6,
+      r: 14 + Math.random() * 8,
+      emoji: isBomb ? '💀' : ['⭐','✨','💫','🌟'][Math.floor(Math.random() * 4)],
+      isBomb,
+      rot: Math.random() * Math.PI * 2,
+      vrot: (Math.random() - 0.5) * 0.05,
+      alive: true
+    });
+    gameState.starSpawnerId = setTimeout(() => spawnStarLoop(cfg), cfg.starInterval + Math.random() * 200);
+  }
+  function animateStars(){
+    if (!gameState.running) return;
+    const rect = { width: starCanvas.width / (Math.min(window.devicePixelRatio || 1, 2)), height: starCanvas.height / (Math.min(window.devicePixelRatio || 1, 2)) };
+    starCtx.clearRect(0, 0, rect.width, rect.height);
+    gameState.stars.forEach(s => {
+      if (!s.alive) return;
+      s.y += s.vy;
+      s.x += s.vx;
+      s.rot += s.vrot;
+      starCtx.save();
+      starCtx.translate(s.x, s.y);
+      starCtx.rotate(s.rot);
+      starCtx.font = (s.r * 2) + 'px sans-serif';
+      starCtx.textAlign = 'center';
+      starCtx.textBaseline = 'middle';
+      starCtx.fillText(s.emoji, 0, 0);
+      starCtx.restore();
+    });
+    // Remove off-screen
+    gameState.stars = gameState.stars.filter(s => s.alive && s.y > -50);
+    gameState.starAnimId = requestAnimationFrame(animateStars);
+  }
+  function handleStarTap(e){
+    if (!gameState.running || gameState.mode !== 'star') return;
+    const rect = starCanvas.getBoundingClientRect();
+    let cx, cy;
+    if (e.touches && e.touches.length) {
+      cx = e.touches[0].clientX - rect.left;
+      cy = e.touches[0].clientY - rect.top;
+    } else {
+      cx = e.clientX - rect.left;
+      cy = e.clientY - rect.top;
+    }
+    // Find closest star within hit radius
+    let hit = null, hitDist = Infinity;
+    for (const s of gameState.stars) {
+      if (!s.alive) continue;
+      const dx = s.x - cx, dy = s.y - cy;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < s.r + 12 && d < hitDist) { hit = s; hitDist = d; }
+    }
+    if (!hit) return;
+    e.preventDefault();
+    hit.alive = false;
+    burstAt(hit.x, hit.y);
+    if (hit.isBomb) {
+      gameState.lives--;
+      gameState.combo = 0;
+      updateLives(); updateCombo();
+      if (gameState.lives <= 0) endGame('lives');
+    } else {
+      gameState.combo++;
+      const points = 1 + Math.floor(gameState.combo / 3);
+      gameState.score += points;
+      updateScore(); updateCombo();
+      if (gameState.combo % 5 === 0) {
+        showCombo(`x${gameState.combo} 连击!`);
+        showRandomNote();
+      } else if (gameState.score % 8 === 0) {
+        showRandomNote();
+      }
+    }
+  }
+  starCanvas.addEventListener('click', handleStarTap);
+  starCanvas.addEventListener('touchstart', handleStarTap, { passive: false });
+
+  function burstAt(x, y){
+    // Particle burst on canvas
+    if (!starCtx) return;
+    const colors = ['#f472b6','#c084fc','#fbbf24','#fff'];
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 * i) / 8;
+      const speed = 2 + Math.random() * 2;
+      gameState.stars.push({
+        x, y,
+        vy: Math.sin(angle) * speed,
+        vx: Math.cos(angle) * speed,
+        r: 6,
+        emoji: '✨',
+        isBomb: false,
+        rot: 0,
+        vrot: 0.1,
+        alive: true,
+        _life: 20
+      });
+    }
+  }
+
+  // ---- Love note popup ----
+  function showRandomNote(){
+    if (!notes.length) return;
+    const text = notes[Math.floor(Math.random() * notes.length)];
+    const emoji = NOTE_EMOJIS[Math.floor(Math.random() * NOTE_EMOJIS.length)];
+    noteText.textContent = text;
+    noteEmoji.textContent = emoji;
+    notePopup.classList.add('show');
+    noteBackdrop.classList.add('show');
+    // Auto-close after 2.5s if game still running
+    clearTimeout(showRandomNote._t);
+    showRandomNote._t = setTimeout(hideNote, 2500);
+  }
+  function hideNote(){
+    notePopup.classList.remove('show');
+    noteBackdrop.classList.remove('show');
+    clearTimeout(showRandomNote._t);
+  }
+  noteCloseBtn.addEventListener('click', hideNote);
+  noteBackdrop.addEventListener('click', hideNote);
+
+  // ---- Note editor ----
+  function openEditor(){
+    renderEditorList();
+    editorOverlay.classList.add('open');
+    editorModal.classList.add('open');
+    noteAddInput.value = '';
+    noteAddInput.focus();
+  }
+  function closeEditor(save){
+    if (save) saveNotes(notes);
+    else notes = loadNotes(); // revert
+    editorOverlay.classList.remove('open');
+    editorModal.classList.remove('open');
+  }
+  function renderEditorList(){
+    editorList.innerHTML = '';
+    if (!notes.length) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'text-align:center;color:rgba(255,255,255,0.4);padding:20px;font-size:13px';
+      empty.textContent = '还没有情话，加一条吧 💕';
+      editorList.appendChild(empty);
+      return;
+    }
+    notes.forEach((note, i) => {
+      const item = document.createElement('div');
+      item.className = 'game-note-item';
+      const text = document.createElement('div');
+      text.className = 'game-note-item-text';
+      text.textContent = note;
+      const del = document.createElement('button');
+      del.className = 'game-note-item-del';
+      del.textContent = '🗑';
+      del.addEventListener('click', () => {
+        notes.splice(i, 1);
+        renderEditorList();
+      });
+      item.appendChild(text);
+      item.appendChild(del);
+      editorList.appendChild(item);
+    });
+  }
+  function addNote(){
+    const v = noteAddInput.value.trim();
+    if (!v) return;
+    notes.unshift(v);
+    noteAddInput.value = '';
+    renderEditorList();
+  }
+  editorBtn.addEventListener('click', openEditor);
+  noteAddBtn.addEventListener('click', addNote);
+  noteAddInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addNote(); });
+  editorCancel.addEventListener('click', () => closeEditor(false));
+  editorSave.addEventListener('click', () => closeEditor(true));
+  editorOverlay.addEventListener('click', () => closeEditor(false));
+
+  // ---- Initial UI sync ----
+  switchModeUI();
+  updateLives();
+  updateScore();
+  updateTimer();
+
+  // Resize handling for star canvas
+  window.addEventListener('resize', () => {
+    if (overlay.classList.contains('open') && gameState.mode === 'star') sizeStarCanvas();
+  });
+}
+// Wait for DOM ready — game HTML elements are below this script tag
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', __initLoveGame);
+} else if (document.getElementById('gameOverlay')) {
+  __initLoveGame();
+} else {
+  // Script ran before game HTML was parsed; wait for it
+  window.addEventListener('load', __initLoveGame);
+}
 </script>
+
+<!-- ============ Game Overlay ============ -->
+<div class="game-overlay" id="gameOverlay">
+  <div class="game-top-bar">
+    <button class="game-close" id="gameClose">✕</button>
+    <div class="game-title">💕 恋爱小游戏</div>
+    <div class="game-score-bar">
+      <div class="game-lives" id="gameLives"></div>
+      <span id="gameCombo" style="font-size:12px;color:rgba(255,255,255,0.4)"></span>
+      <span>💗</span><span class="game-score-val" id="gameScore">0</span>
+    </div>
+  </div>
+
+  <div class="game-mode-row" id="gameModeRow">
+    <button class="game-mode-btn active" data-mode="whack" id="gameModeWhack">🔨 打地鼠</button>
+    <button class="game-mode-btn" data-mode="star" id="gameModeStar">⭐ 抓星星</button>
+  </div>
+
+  <div class="game-timer-bar" id="gameTimerBar"><div class="game-timer-fill" id="gameTimerFill" style="width:100%"></div></div>
+
+  <div class="game-field" id="gameField">
+    <!-- Whack mode holes -->
+    <div class="game-holes" id="gameHoles">
+      <div class="game-hole" data-hole="0"><div class="game-mole" data-mole="0">🐹</div></div>
+      <div class="game-hole" data-hole="1"><div class="game-mole" data-mole="1">🐹</div></div>
+      <div class="game-hole" data-hole="2"><div class="game-mole" data-mole="2">🐹</div></div>
+      <div class="game-hole" data-hole="3"><div class="game-mole" data-mole="3">🐹</div></div>
+      <div class="game-hole" data-hole="4"><div class="game-mole" data-mole="4">🐹</div></div>
+      <div class="game-hole" data-hole="5"><div class="game-mole" data-mole="5">🐹</div></div>
+      <div class="game-hole" data-hole="6"><div class="game-mole" data-mole="6">🐹</div></div>
+      <div class="game-hole" data-hole="7"><div class="game-mole" data-mole="7">🐹</div></div>
+      <div class="game-hole" data-hole="8"><div class="game-mole" data-mole="8">🐹</div></div>
+    </div>
+    <!-- Star mode canvas (hidden by default) -->
+    <canvas id="gameStarCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:none"></canvas>
+  </div>
+
+  <!-- Game over screen -->
+  <div class="game-over" id="gameOver">
+    <div class="game-over-emoji" id="gameOverEmoji">💕</div>
+    <div class="game-over-score" id="gameOverScore">0</div>
+    <div class="game-over-label">分</div>
+    <div class="game-over-best" id="gameOverBest"></div>
+    <button class="game-over-btn" id="gameRestart">再来一次 💪</button>
+  </div>
+
+  <div class="game-controls">
+    <div class="game-diff-row">
+      <button class="game-diff-btn active" data-diff="easy">😌 简单</button>
+      <button class="game-diff-btn" data-diff="normal">😊 正常</button>
+      <button class="game-diff-btn" data-diff="hard">🔥 困难</button>
+    </div>
+    <button class="game-start-btn" id="gameStartBtn">开始游戏 ✨</button>
+    <button class="game-note-editor-btn" id="gameNoteEditorBtn">📝 编辑情话</button>
+  </div>
+</div>
+
+<!-- Love note popup -->
+<div class="game-note-backdrop" id="gameNoteBackdrop"></div>
+<div class="game-note-popup" id="gameNotePopup">
+  <div class="game-note-emoji" id="gameNoteEmoji">💕</div>
+  <div class="game-note-text" id="gameNoteText"></div>
+  <button class="game-note-close" id="gameNoteClose">知道了 😊</button>
+</div>
+
+<!-- Combo display -->
+<div class="game-combo" id="gameComboPop"></div>
+
+<!-- Note editor modal -->
+<div class="modal-overlay" id="noteEditorOverlay"></div>
+<div class="modal" id="noteEditorModal">
+  <div class="modal-title">📝 编辑小情话</div>
+  <div class="game-note-list" id="noteEditorList"></div>
+  <div class="game-note-add-area">
+    <input class="game-note-add-input" id="noteAddInput" placeholder="输入新情话..." maxlength="100">
+    <button class="game-note-add-btn" id="noteAddBtn">+</button>
+  </div>
+  <div class="btn-row" style="margin-top:16px">
+    <button class="cancel-btn" id="noteEditorCancel">取消</button>
+    <button class="save-btn" id="noteEditorSave">保存 💕</button>
+  </div>
+</div>
+
 </body>
 </html>

@@ -135,6 +135,12 @@ select.setting-input option{background:#1a1535;color:#fff}
 .btn-row .save-btn{margin-top:0}
 .noscript-msg{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(180deg,#0f0c29,#302b63);color:#fff;text-align:center;font-family:sans-serif;z-index:9999}
 
+/* Avatar upload in settings */
+.avatar-upload{display:inline-flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:rgba(255,255,255,0.06);border:1px dashed var(--border);border-radius:12px;transition:border-color .2s}
+.avatar-upload:hover{border-color:var(--purple)}
+.avatar-preview{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(255,255,255,0.3);overflow:hidden;flex-shrink:0}
+.avatar-preview img{width:100%;height:100%;object-fit:cover}
+
 /* Weather under clocks */
 .clock-weather{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;font-size:12px;color:rgba(255,255,255,0.55)}
 .clock-weather .w-emoji{font-size:14px}
@@ -287,7 +293,11 @@ select.setting-input option{background:#1a1535;color:#fff}
 .game-field{flex:1;position:relative;overflow:hidden;margin:8px 12px;border-radius:20px;background:rgba(255,255,255,0.03);border:1px solid var(--border)}
 .game-holes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:8px;padding:12px;height:100%;box-sizing:border-box}
 .game-hole{background:rgba(255,255,255,0.04);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.game-mole{font-size:clamp(28px,12vw,40px);position:absolute;bottom:-50px;transition:bottom .15s ease-out;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;z-index:2}
+.game-mole{font-size:clamp(28px,12vw,40px);position:absolute;bottom:-50px;transition:bottom .15s ease-out;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;z-index:2;display:flex;align-items:center;justify-content:center;width:50px;height:50px;overflow:hidden}
+.game-mole .mole-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;display:none}
+.game-mole .mole-emoji{font-size:clamp(24px,10vw,36px);line-height:1}
+.game-mole .mole-avatar.has-img{display:block}
+.game-mole .mole-avatar.has-img ~ .mole-emoji{display:none}
 .game-mole.visible{bottom:4px}
 .game-mole.hit{animation:moleHit .3s ease-out forwards}
 @keyframes moleHit{0%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.6}100%{transform:scale(0);opacity:0}}
@@ -487,8 +497,22 @@ select.setting-input option{background:#1a1535;color:#fff}
     <input class="setting-input" id="sNameA" placeholder="你" maxlength="10">
   </div>
   <div class="setting-row">
+    <div class="setting-label">你的头像（小游戏用）📸</div>
+    <label class="avatar-upload" id="avatarUploadA">
+      <span class="avatar-preview" id="avatarPreviewA">+</span>
+      <input type="file" accept="image/*" id="avatarInputA" style="display:none">
+    </label>
+  </div>
+  <div class="setting-row">
     <div class="setting-label">TA 的名字</div>
     <input class="setting-input" id="sNameB" placeholder="TA" maxlength="10">
+  </div>
+  <div class="setting-row">
+    <div class="setting-label">TA 的头像（小游戏用）📸</div>
+    <label class="avatar-upload" id="avatarUploadB">
+      <span class="avatar-preview" id="avatarPreviewB">+</span>
+      <input type="file" accept="image/*" id="avatarInputB" style="display:none">
+    </label>
   </div>
   <div class="setting-row">
     <div class="setting-label">在一起的日期 💑</div>
@@ -2081,6 +2105,55 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
   showToast();
 });
 
+// ===== Avatar upload =====
+function __compressImage(file, maxW, cb){
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = h * maxW / w; w = maxW; }
+      if (h > maxW) { w = w * maxW / h; h = maxW; }
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(c.toDataURL('image/jpeg', 0.7));
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+['A','B'].forEach(letter => {
+  const input = document.getElementById('avatarInput' + letter);
+  const preview = document.getElementById('avatarPreview' + letter);
+  if (!input || !preview) return;
+  input.addEventListener('change', () => {
+    const file = input.files[0];
+    if (!file) return;
+    __compressImage(file, 128, (dataUrl) => {
+      localStorage.setItem('avatar' + letter, dataUrl);
+      preview.innerHTML = '<img src="' + dataUrl + '">';
+      showToast('头像已更新 📸');
+    });
+  });
+});
+// Load avatars on drawer open
+function __loadAvatars(){
+  ['A','B'].forEach(letter => {
+    const preview = document.getElementById('avatarPreview' + letter);
+    const data = localStorage.getItem('avatar' + letter);
+    if (preview) {
+      if (data) preview.innerHTML = '<img src="' + data + '">';
+      else preview.textContent = '+';
+    }
+  });
+}
+const _origOpenDrawer = openDrawer;
+window.openDrawer = function(){
+  _origOpenDrawer();
+  __loadAvatars();
+};
+
 // ===== Weather care bubble =====
 function updateWeatherCare(){
   const el=document.getElementById('weatherCare');
@@ -2433,7 +2506,27 @@ function __initLoveGame(){
     // Random emoji - some are bombs (penalty)
     const isBomb = Math.random() < 0.12;
     mole.dataset.bomb = isBomb ? '1' : '0';
-    mole.textContent = isBomb ? '💣' : (Math.random() < 0.3 ? '🐹' : '🐭');
+    const avatarImg = mole.querySelector('.mole-avatar');
+    const emojiSpan = mole.querySelector('.mole-emoji');
+    if (isBomb) {
+      avatarImg.className = 'mole-avatar';
+      emojiSpan.textContent = '💣';
+    } else {
+      const avA = localStorage.getItem('avatarA') || '';
+      const avB = localStorage.getItem('avatarB') || '';
+      if (avA && avB) {
+        avatarImg.src = Math.random() < 0.5 ? avA : avB;
+        avatarImg.className = 'mole-avatar has-img';
+        emojiSpan.textContent = '🐹';
+      } else if (avA) {
+        avatarImg.src = avA;
+        avatarImg.className = 'mole-avatar has-img';
+        emojiSpan.textContent = '🐹';
+      } else {
+        avatarImg.className = 'mole-avatar';
+        emojiSpan.textContent = Math.random() < 0.5 ? '🐹' : '🐭';
+      }
+    }
     mole.classList.remove('hit');
     requestAnimationFrame(() => mole.classList.add('visible'));
     const hideAt = setTimeout(() => {
@@ -2750,15 +2843,15 @@ if (document.readyState === 'loading') {
   <div class="game-field" id="gameField">
     <!-- Whack mode holes -->
     <div class="game-holes" id="gameHoles">
-      <div class="game-hole" data-hole="0"><div class="game-mole" data-mole="0">🐹</div></div>
-      <div class="game-hole" data-hole="1"><div class="game-mole" data-mole="1">🐹</div></div>
-      <div class="game-hole" data-hole="2"><div class="game-mole" data-mole="2">🐹</div></div>
-      <div class="game-hole" data-hole="3"><div class="game-mole" data-mole="3">🐹</div></div>
-      <div class="game-hole" data-hole="4"><div class="game-mole" data-mole="4">🐹</div></div>
-      <div class="game-hole" data-hole="5"><div class="game-mole" data-mole="5">🐹</div></div>
-      <div class="game-hole" data-hole="6"><div class="game-mole" data-mole="6">🐹</div></div>
-      <div class="game-hole" data-hole="7"><div class="game-mole" data-mole="7">🐹</div></div>
-      <div class="game-hole" data-hole="8"><div class="game-mole" data-mole="8">🐹</div></div>
+      <div class="game-hole" data-hole="0"><div class="game-mole" data-mole="0"><img class="mole-avatar" alt=""><span class="mole-emoji">🐹</span></div></div>
+      <div class="game-hole" data-hole="1"><div class="game-mole" data-mole="1"><img class="mole-avatar" alt=""><span class="mole-emoji">🐹</span></div></div>
+      <div class="game-hole" data-hole="2"><div class="game-mole" data-mole="2"><img class="mole-avatar" alt=""><span class="mole-emoji">🐹</span></div></div>
+      <div class="game-hole" data-hole="3"><div class="game-mole" data-mole="3"><img class="mole-avatar" alt=""><span class="mole-emoji">🐹</span></div></div>
+      <div class="game-hole" data-hole="4"><div class="game-mole" data-mole="4"><img class="mole-avatar" alt=""><span class="mole-emoji">🐹</span></div></div>
+      <div class="game-hole" data-hole="5"><div class="game-mole" data-mole="5"><img class="mole-avatar" alt=""><span class="mole-emoji">🐹</span></div></div>
+      <div class="game-hole" data-hole="6"><div class="game-mole" data-mole="6"><img class="mole-avatar" alt=""><span class="mole-emoji">🐹</span></div></div>
+      <div class="game-hole" data-hole="7"><div class="game-mole" data-mole="7"><img class="mole-avatar" alt=""><span class="mole-emoji">🐹</span></div></div>
+      <div class="game-hole" data-hole="8"><div class="game-mole" data-mole="8"><img class="mole-avatar" alt=""><span class="mole-emoji">🐹</span></div></div>
     </div>
     <!-- Star mode canvas (hidden by default) -->
     <canvas id="gameStarCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:none"></canvas>
